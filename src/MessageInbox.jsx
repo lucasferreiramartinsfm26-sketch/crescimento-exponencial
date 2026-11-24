@@ -11,8 +11,8 @@ export default function MessageInbox() {
   const [error, setError] = useState('');
   const [openId, setOpenId] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError('');
     const { data: auth } = await supabase.auth.getUser();
     const currentUserId = auth?.user?.id || '';
@@ -91,12 +91,12 @@ export default function MessageInbox() {
         event: 'INSERT',
         schema: 'public',
         table: 'application_messages'
-      }, () => { load(); })
+      }, () => { load(false); })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'application_message_reads'
-      }, () => { load(); })
+      }, () => { load(false); })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [load]);
@@ -113,7 +113,7 @@ export default function MessageInbox() {
       <strong>{totalUnread}</strong><span>Mensagens não lidas</span>
     </div>
     {error && <p className="admin-error" role="alert">{error}</p>}
-    {loading ? <p className="empty">Carregando caixa de entrada...</p> : items.length ? <div className="message-inbox-list">
+    {loading && !items.length ? <p className="empty">Carregando caixa de entrada...</p> : items.length ? <div className="message-inbox-list">
       {items.map(item => <article className={'message-inbox-item' + (item.unread ? ' has-unread' : '')} key={item.id}>
         <div className="message-inbox-copy">
           <strong>{item.counterpart}</strong>

@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 
-export default function toLocalISODate(date) {
+function toLocalISODate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-function App() {
+export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(false);

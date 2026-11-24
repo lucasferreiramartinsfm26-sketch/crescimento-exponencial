@@ -18,6 +18,7 @@ export default function AdminPanel() {
   const [companies, setCompanies] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [reports, setReports] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState('');
   const [message, setMessage] = useState('');
@@ -26,16 +27,18 @@ export default function AdminPanel() {
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
-    const [companyResult, opportunityResult, reportResult] = await Promise.all([
+    const [companyResult, opportunityResult, reportResult, applicationResult] = await Promise.all([
       supabase.from('company_profiles').select('id,owner_id,name,cnpj,email,phone,website,description,status,created_at').order('created_at', { ascending: false }),
       supabase.from('opportunities').select('id,title,description,compensation,deadline,status,created_at,company_profiles(name,owner_id)').order('created_at', { ascending: false }),
-      supabase.from('opportunity_reports').select('id,reason,details,status,created_at,opportunity_id').order('created_at', { ascending: false })
+      supabase.from('opportunity_reports').select('id,reason,details,status,created_at,opportunity_id').order('created_at', { ascending: false }),
+      supabase.from('opportunity_applications').select('id,status,created_at').order('created_at', { ascending: false })
     ]);
-    const firstError = companyResult.error || opportunityResult.error || reportResult.error;
+    const firstError = companyResult.error || opportunityResult.error || reportResult.error || applicationResult.error;
     if (firstError) setError('Não foi possível carregar todos os dados: ' + firstError.message);
     setCompanies(companyResult.data || []);
     setOpportunities(opportunityResult.data || []);
     setReports(reportResult.data || []);
+    setApplications(applicationResult.data || []);
     setLoading(false);
   }, []);
 
@@ -72,6 +75,7 @@ export default function AdminPanel() {
   const pendingCompanies = companies.filter(item => item.status === 'pending').length;
   const pendingOpportunities = opportunities.filter(item => item.status === 'pending').length;
   const openReports = reports.filter(item => item.status === 'open' || item.status === 'reviewing').length;
+  const pendingApplications = applications.filter(item => item.status === 'pending').length;
 
   return <section className="admin-page">
     <div className="section-heading"><div><h2>Painel administrativo</h2><p>Gerencie empresas, oportunidades e denúncias da plataforma.</p></div><button className="logout-button" onClick={loadData} disabled={loading}>Atualizar dados</button></div>
@@ -79,6 +83,8 @@ export default function AdminPanel() {
       <article className="stat-card"><div className="stat-icon blue">▣</div><span>Empresas pendentes</span><strong>{pendingCompanies}</strong></article>
       <article className="stat-card"><div className="stat-icon green">↗</div><span>Oportunidades pendentes</span><strong>{pendingOpportunities}</strong></article>
       <article className="stat-card"><div className="stat-icon violet">⚑</div><span>Denúncias abertas</span><strong>{openReports}</strong></article>
+      <article className="stat-card"><div className="stat-icon blue">☷</div><span>Total de candidaturas</span><strong>{applications.length}</strong></article>
+      <article className="stat-card"><div className="stat-icon green">✓</div><span>Candidaturas novas</span><strong>{pendingApplications}</strong></article>
     </div>
     <div className="admin-tabs">
       <button className={section === 'empresas' ? 'active' : ''} onClick={() => setSection('empresas')}>Empresas ({companies.length})</button>

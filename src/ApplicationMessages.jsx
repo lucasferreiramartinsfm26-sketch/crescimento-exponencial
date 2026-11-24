@@ -72,6 +72,29 @@ export default function ApplicationMessages({ applicationId }) {
     return () => { active = false; };
   }, [loadUnread]);
 
+  useEffect(() => {
+    if (!userId) return undefined;
+    const channel = supabase.channel('application-messages-' + applicationId)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'application_messages',
+        filter: 'application_id=eq.' + applicationId
+      }, () => {
+        load(expanded);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'application_message_reads',
+        filter: 'application_id=eq.' + applicationId
+      }, () => {
+        loadUnread(userId);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [applicationId, userId, expanded, load, loadUnread]);
+
   async function toggleConversation() {
     if (expanded) {
       setExpanded(false);

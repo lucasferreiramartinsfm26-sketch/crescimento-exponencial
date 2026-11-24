@@ -26,13 +26,15 @@ O cliente Supabase está configurado em `src/lib/supabase.js` com URL do projeto
 Para montar uma nova instância, execute os scripts SQL no SQL Editor do Supabase, nesta ordem:
 
 1. `supabase/schema.sql`
-2. `supabase/platform_schema.sql`
+2. `supabase/tasks_fields.sql` (compatibilidade com a tabela de tarefas existente)
+3. `supabase/platform_schema.sql`
 3. `supabase/company_registration_fields.sql`
 4. `supabase/company_notifications.sql`
-5. `supabase/opportunity_applications.sql`
-6. `supabase/application_messages.sql`
-7. `supabase/application_message_reads.sql`
-8. `supabase/application_messages_realtime.sql`
+6. `supabase/opportunity_applications.sql`
+7. `supabase/launch_security_hardening.sql` (proteção adicional das candidaturas)
+8. `supabase/application_messages.sql`
+9. `supabase/application_message_reads.sql`
+10. `supabase/application_messages_realtime.sql`
 
 Depois, cadastre a conta responsável pela administração em `public.platform_admins` pelo SQL Editor. Use o e-mail da conta que fará login:
 
@@ -44,7 +46,7 @@ where lower(email) = lower('SEU_EMAIL_DE_ADMIN')
 on conflict (user_id) do nothing;
 ```
 
-Os scripts usam `create table if not exists` e políticas recriadas de forma idempotente; ainda assim, faça backup antes de aplicar mudanças em uma instância que já tenha dados.
+Os scripts usam `create table if not exists`, `add column if not exists` e políticas recriadas de forma idempotente; ainda assim, faça backup antes de aplicar mudanças em uma instância que já tenha dados. Na instalação existente, execute as migrações adicionais indicadas acima no SQL Editor.
 
 ## Desenvolvimento local
 

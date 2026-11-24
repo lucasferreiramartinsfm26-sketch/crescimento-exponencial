@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
+import ApplicationMessages from './ApplicationMessages';
 
 const labels = { pending: 'Nova', reviewing: 'Em análise', approved: 'Aprovada', rejected: 'Não selecionada' };
 
@@ -104,6 +105,7 @@ export function MyApplications() {
     {loading ? <p className="empty">Carregando candidaturas...</p> : items.length ? items.map(item => <article className="admin-record" key={item.id}>
       <div className="admin-record-main"><strong>{item.opportunities?.title || 'Oportunidade'}</strong><span>{item.opportunities?.company_profiles?.name || 'Empresa'}</span><small>Enviada em {new Date(item.created_at).toLocaleDateString('pt-BR')}</small></div>
       <span className={'admin-status status-' + item.status}>{labels[item.status] || item.status}</span>
+      <ApplicationMessages applicationId={item.id} />
     </article>) : <p className="empty">Você ainda não enviou candidaturas.</p>}
   </section>;
 }
@@ -147,6 +149,7 @@ export function CompanyApplications({ opportunities = [] }) {
     {loading ? <p className="empty">Carregando candidatos...</p> : items.length ? items.map(item => <article className="admin-record applicant-record" key={item.id}>
       <div className="admin-record-main"><strong>{item.full_name}</strong><span>{titles[item.opportunity_id] || 'Oportunidade'}</span><a href={'mailto:' + item.email}>{item.email}</a>{item.phone && <small>{item.phone}</small>}{item.resume_url && <a href={item.resume_url} target="_blank" rel="noreferrer">Abrir currículo</a>}{item.message && <p className="applicant-message">{item.message}</p>}<small>Recebida em {new Date(item.created_at).toLocaleDateString('pt-BR')}</small></div>
       <span className={'admin-status status-' + item.status}>{labels[item.status] || item.status}</span>
+      <ApplicationMessages applicationId={item.id} />
       <div className="admin-actions application-status-actions">
         <button type="button" className="muted" disabled={savingId === item.id} onClick={() => changeStatus(item, 'reviewing')}>Em análise</button>
         <button type="button" disabled={savingId === item.id} onClick={() => changeStatus(item, 'approved')}>Aprovar</button>

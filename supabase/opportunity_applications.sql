@@ -27,6 +27,7 @@ create policy "Candidates can apply to approved opportunities"
 on public.opportunity_applications for insert to authenticated
 with check (
   candidate_id = auth.uid()
+  and status = 'pending'
   and exists (
     select 1 from public.opportunities o
     where o.id = opportunity_id

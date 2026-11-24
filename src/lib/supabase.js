@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-export const supabaseReady = Boolean(url && key && !url.includes('SEU-PROJETO') && !key.includes('SUA_CHAVE'));
-export const supabase = supabaseReady ? createClient(url, key) : null;
+
+// Publishable key: intended for browser use. Protect data with Supabase RLS.
+const url = 'https://wxjhxheonexietlkqlke.supabase.co';
+const key = 'sb_publishable_Q0s4M8LyYpjIbd4mK6JdDQ_bxVGpUwq';
+
+export const supabaseReady = Boolean(url && key);
+export const supabase = createClient(url, key);

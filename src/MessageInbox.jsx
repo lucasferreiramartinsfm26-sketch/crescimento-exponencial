@@ -84,7 +84,22 @@ export default function MessageInbox() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    const channel = supabase.channel('message-inbox-live')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'application_messages'
+      }, () => { load(); })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'application_message_reads'
+      }, () => { load(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [load]);
 
   const totalUnread = items.reduce((sum, item) => sum + item.unread, 0);
 

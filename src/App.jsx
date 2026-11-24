@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 
-export default function App() {
+export default function toLocalISODate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(false);
@@ -14,6 +21,8 @@ export default function App() {
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
   const [newGoalDueDate, setNewGoalDueDate] = useState('');
   const [tab, setTab] = useState('Visão geral');
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState(() => toLocalISODate(new Date()));
   const [taskFilter, setTaskFilter] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
   const [authMode, setAuthMode] = useState('login');
@@ -65,6 +74,19 @@ export default function App() {
   const displayName = session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || 'Vamos começar';
   const greeting = displayName.trim().split(' ')[0];
   const alertTasks = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= 3).sort((a, b) => a.due_date.localeCompare(b.due_date));
+  const calendarMonthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(calendarMonth);
+  const calendarCells = useMemo(() => {
+    const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+    const start = new Date(first);
+    start.setDate(1 - first.getDay());
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const iso = toLocalISODate(date);
+      return { iso, day: date.getDate(), inMonth: date.getMonth() === calendarMonth.getMonth(), items: tasks.filter(task => task.due_date === iso) };
+    });
+  }, [calendarMonth, tasks]);
+  const selectedCalendarTasks = tasks.filter(task => task.due_date === calendarSelectedDate).sort((a, b) => Number(a.done) - Number(b.done));
 
   async function handleAuth(event) {
     event.preventDefault();
@@ -229,12 +251,12 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">↗</div><div><strong>Crescimento</strong><span>EXPONENCIAL</span></div></div>
       <div className="side-label">MENU PRINCIPAL</div>
-      <nav>{['Visão geral', 'Minhas metas'].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : '◎'}</span>{item}</button>)}</nav>
+      <nav>{['Visão geral', 'Minhas metas', 'Calendário'].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : '▣'}</span>{item}</button>)}</nav>
       <div className="sidebar-bottom"><div className="status-dot"></div><div><b>Seu espaço de evolução</b><small>Um passo de cada vez.</small></div></div>
     </aside>
     <main className="main">
       <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
-      <nav className="mobile-nav">{['Visão geral', 'Minhas metas'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : '◎ Minhas metas'}</button>)}</nav>
+      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : '▣ Calendário'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>
       {error && <div className="app-error" role="alert">{error}</div>}
       {alertTasks.length > 0 && <section className="panel alerts-panel">
@@ -249,7 +271,15 @@ export default function App() {
           </div>;
         })}</div>
       </section>}
-      {tab === 'Visão geral' ? <>
+      {tab === 'Calendário' ? <section className="panel calendar-panel">
+        <div className="panel-heading"><div><h3>Calendário</h3><p>Visualize os prazos das suas tarefas e metas.</p></div><span className="count">{tasks.filter(task => task.due_date).length} com prazo</span></div>
+        <div className="calendar-toolbar"><button type="button" onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))} aria-label="Mês anterior">‹</button><strong>{calendarMonthLabel}</strong><button type="button" onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))} aria-label="Próximo mês">›</button><button type="button" className="calendar-today" onClick={() => { const now = new Date(); setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1)); setCalendarSelectedDate(toLocalISODate(now)); }}>Hoje</button></div>
+        <div className="calendar-grid calendar-weekdays">{['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => <span key={day}>{day}</span>)}</div>
+        <div className="calendar-grid calendar-days">{calendarCells.map(cell => <button type="button" key={cell.iso} className={'calendar-day' + (!cell.inMonth ? ' outside' : '') + (cell.iso === calendarSelectedDate ? ' selected' : '') + (cell.iso === toLocalISODate(new Date()) ? ' today' : '')} onClick={() => setCalendarSelectedDate(cell.iso)}><span>{cell.day}</span>{cell.items.length > 0 && <i className="calendar-dot"/>}<small>{cell.items.length > 0 ? cell.items.length : ''}</small></button>)}</div>
+        <div className="calendar-agenda"><div className="panel-heading"><div><h3>Compromissos do dia</h3><p>{calendarSelectedDate.split('-').reverse().join('/')}</p></div><span className="count">{selectedCalendarTasks.length} itens</span></div>
+          {selectedCalendarTasks.length ? <div className="task-list">{selectedCalendarTasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}><span className="calendar-task-category">{task.category === 'Meta' ? '◎' : '▦'}</span><span className="task-title">{task.title}<small>{task.category} • {task.done ? 'Concluída' : 'Pendente'} • Prioridade {task.priority || 'Média'}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span></div>)}</div> : <p className="empty">Nenhuma tarefa ou meta com vencimento nesta data.</p>}
+        </div>
+      </section> : tab === 'Visão geral' ? <>
         <div className="section-heading"><div><h2>Visão geral</h2><p>Acompanhe sua evolução de hoje.</p></div></div>
         <div className="stats">
           <article className="stat-card"><div className="stat-icon green">✓</div><span>Tarefas concluídas</span><strong>{completed}<small> / {actionTasks.length}</small></strong><div className="mini-track"><i style={{width: progress + '%'}}/></div></article>

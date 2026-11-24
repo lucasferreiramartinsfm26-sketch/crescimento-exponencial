@@ -125,3 +125,9 @@ footer{padding-top:36px}
 /* Filtros de tarefas e metas */
 .task-filters{display:flex;gap:7px;margin:0 0 12px}.task-filter{border:1px solid #e3eaf0;background:#f7f9fb;color:#718096;border-radius:20px;padding:7px 12px;font:600 10px 'DM Sans',Arial,sans-serif;cursor:pointer}.task-filter.active{background:#e5f8ef;border-color:#bcebd6;color:#087b54}.task-filter:hover:not(.active){background:#edf3f6;color:#34465b}
 @media(max-width:650px){.task-filters{gap:6px}.task-filter{padding:8px 11px;font-size:10px}}
+
+
+/* Campo de busca para localizar tarefas e metas rapidamente */
+.task-search{margin:0 0 10px}
+.task-search input{width:100%;border:1px solid #e3eaf0;border-radius:9px;background:#f8fafc;color:#15243a;padding:11px 13px;font:12px 'DM Sans',Arial,sans-serif;outline:none}
+.task-search input:focus{border-color:#21b77d;box-shadow:0 0 0 3px #16ad7818}

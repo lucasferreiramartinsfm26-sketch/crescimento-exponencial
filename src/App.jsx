@@ -8,6 +8,8 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [name, setName] = useState('');
   const [newTask, setNewTask] = useState('');
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
   const [tab, setTab] = useState('Visão geral');
   const [authMode, setAuthMode] = useState('login');
   const [email, setEmail] = useState('');
@@ -90,6 +92,29 @@ export default function App() {
     setSaving(false);
   }
 
+  function startEditing(task) {
+    setEditingTaskId(task.id);
+    setEditingTitle(task.title);
+    setError('');
+  }
+
+  async function saveTaskEdit(task) {
+    const title = editingTitle.trim();
+    if (!title) { setError('Digite um nome para a tarefa.'); return; }
+    setSaving(true);
+    setError('');
+    const { data, error: editError } = await supabase.from('tasks')
+      .update({ title }).eq('id', task.id).eq('user_id', session.user.id)
+      .select('id,title,category,done,created_at').single();
+    if (editError) setError('Não foi possível editar a tarefa. ' + editError.message);
+    else {
+      setTasks(current => current.map(item => item.id === task.id ? data : item));
+      setEditingTaskId(null);
+      setEditingTitle('');
+    }
+    setSaving(false);
+  }
+
   async function toggleTask(task) {
     setError('');
     const nextDone = !task.done;
@@ -147,7 +172,11 @@ export default function App() {
         </div>
         <div className="content-grid"><section className="panel tasks-panel"><div className="panel-heading"><div><h3>Minhas tarefas</h3><p>Transforme planos em atitudes.</p></div><span className="count">{completed}/{tasks.length}</span></div>
           <form className="add-form" onSubmit={addTask}><input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Adicione uma nova tarefa..." aria-label="Nova tarefa"/><button type="submit" disabled={saving || !newTask.trim()}>{saving ? 'Salvando...' : 'Adicionar'}</button></form>
-          {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{tasks.map(task => <label className={task.done ? 'task done' : 'task'} key={task.id}><input type="checkbox" checked={task.done} onChange={() => toggleTask(task)}/><span className="checkmark"></span><span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span></label>)}
+          {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{tasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}>
+            <input type="checkbox" checked={task.done} onChange={() => toggleTask(task)} aria-label={task.done ? 'Reabrir tarefa' : 'Concluir tarefa'}/>
+            <span className="checkmark"></span>
+            {editingTaskId === task.id ? <div className="task-edit"><input value={editingTitle} onChange={e => setEditingTitle(e.target.value)} aria-label="Editar tarefa" onKeyDown={e => { if (e.key === 'Enter') saveTaskEdit(task); if (e.key === 'Escape') setEditingTaskId(null); }}/><button type="button" onClick={() => saveTaskEdit(task)} disabled={saving}>Salvar</button><button type="button" className="task-cancel" onClick={() => setEditingTaskId(null)}>Cancelar</button></div> : <><span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button></>}
+          </div>)}
           {tasks.length === 0 && <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p>}</div>}
         </section><aside className="panel progress-panel"><div className="panel-heading"><div><h3>Seu ritmo</h3><p>O progresso de hoje</p></div></div><div className="ring" style={{'--progress': progress + '%'}}><div><strong>{progress}%</strong><small>concluído</small></div></div><p className="motivation">{progress === 100 ? 'Excelente! Você concluiu tudo.' : 'A constância é mais importante que a velocidade.'}</p></aside></div>
       </> : <section className="panel goals-panel"><div className="panel-heading"><div><h3>Minhas metas</h3><p>Organize suas ações e acompanhe cada conquista.</p></div></div><p className="goal-message">Suas metas são construídas com tarefas simples. Adicione tarefas na Visão geral e marque cada etapa quando concluir.</p><button className="primary-button" onClick={() => setTab('Visão geral')}>Voltar para visão geral</button></section>}

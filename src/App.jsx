@@ -95,7 +95,7 @@ export default function App() {
     setSaving(true);
     const { data, error: insertError } = await supabase.from('tasks')
       .insert({ title, category: 'Pessoal', priority: newTaskPriority, user_id: session.user.id })
-      .select('id,title,category,done,created_at').single();
+      .select('id,title,category,done,priority,created_at').single();
     if (insertError) setError('Não foi possível salvar a tarefa. ' + insertError.message);
     else { setTasks(current => [...current, data]); setNewTask(''); setNewTaskPriority('Média'); }
     setSaving(false);
@@ -109,7 +109,7 @@ export default function App() {
     setSaving(true);
     const { data, error: insertError } = await supabase.from('tasks')
       .insert({ title, category: 'Meta', priority: newGoalPriority, user_id: session.user.id })
-      .select('id,title,category,done,created_at').single();
+      .select('id,title,category,done,priority,created_at').single();
     if (insertError) setError('Não foi possível salvar a meta. ' + insertError.message);
     else { setTasks(current => [...current, data]); setNewGoal(''); setNewGoalPriority('Média'); }
     setSaving(false);
@@ -128,7 +128,7 @@ export default function App() {
     setError('');
     const { data, error: editError } = await supabase.from('tasks')
       .update({ title }).eq('id', task.id).eq('user_id', session.user.id)
-      .select('id,title,category,done,created_at').single();
+      .select('id,title,category,done,priority,created_at').single();
     if (editError) setError('Não foi possível editar a tarefa. ' + editError.message);
     else {
       setTasks(current => current.map(item => item.id === task.id ? data : item));

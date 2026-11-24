@@ -287,3 +287,19 @@ footer{padding-top:36px}
 
 /* Sistema de candidaturas */
 .application-form-panel{margin-top:16px}.application-form-actions{grid-column:1/-1;display:flex;gap:9px;flex-wrap:wrap}.application-form-actions button{flex:1}.applications-list-panel{margin-top:18px}.applicant-record{align-items:flex-start}.applicant-message{margin:5px 0;padding:10px;border-radius:8px;background:#f6faf8;color:#526174;font-size:11px;line-height:1.6;white-space:pre-wrap}.application-status-actions{flex-wrap:wrap}.application-status-actions button{flex:1;min-width:90px}@media(max-width:650px){.application-form-actions{flex-direction:column}.application-status-actions button{min-width:0}}
+
+
+/* Conversas privadas vinculadas às candidaturas */
+.application-chat{width:100%;min-width:0;margin-top:10px;padding:12px;border:1px solid #e5edf1;border-radius:11px;background:#fbfdfc}
+.application-chat-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.application-chat-heading strong{font-size:12px;color:#18334d}
+.application-chat-list{display:grid;gap:8px;max-height:260px;overflow-y:auto;padding:2px}
+.application-chat-message{max-width:92%;padding:9px 11px;border-radius:10px;background:#eef3f7}
+.application-chat-message.mine{justify-self:end;background:#e5f8ef}
+.application-chat-message small{display:block;color:#8290a2;font-size:9px}
+.application-chat-message p{margin:5px 0 0;color:#34465b;font-size:11px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.application-chat-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:10px}
+.application-chat-form textarea{width:100%;min-width:0;resize:vertical;border:1px solid #e1e8ef;border-radius:8px;padding:9px;font:12px 'DM Sans',Arial,sans-serif}
+.application-chat-form button{align-self:stretch;border:0;border-radius:8px;background:#0b9c6b;color:#fff;padding:9px 12px;font:700 10px 'DM Sans',Arial,sans-serif;cursor:pointer}
+.application-chat-form button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:650px){.application-chat{padding:9px}.application-chat-form{grid-template-columns:1fr}.application-chat-form button{padding:11px}}

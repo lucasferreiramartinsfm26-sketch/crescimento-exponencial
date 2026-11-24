@@ -20,6 +20,8 @@ export default function App() {
   const [newGoalPriority, setNewGoalPriority] = useState('Média');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
   const [newGoalDueDate, setNewGoalDueDate] = useState('');
+  const [newTaskReminderDays, setNewTaskReminderDays] = useState(3);
+  const [newGoalReminderDays, setNewGoalReminderDays] = useState(3);
   const [tab, setTab] = useState('Visão geral');
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [calendarSelectedDate, setCalendarSelectedDate] = useState(() => toLocalISODate(new Date()));
@@ -54,7 +56,7 @@ export default function App() {
     if (!session?.user) { setTasks([]); setTasksLoading(false); return; }
     let active = true;
     setTasksLoading(true);
-    supabase.from('tasks').select('id,title,category,done,priority,due_date,progress,created_at').eq('user_id', session.user.id).order('created_at', { ascending: true })
+    supabase.from('tasks').select('id,title,category,done,priority,due_date,progress,reminder_days,created_at').eq('user_id', session.user.id).order('created_at', { ascending: true })
       .then(({ data, error: loadError }) => {
         if (!active) return;
         if (loadError) setError('Não foi possível carregar suas tarefas. ' + loadError.message);
@@ -75,7 +77,7 @@ export default function App() {
   const today = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   const displayName = session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || 'Vamos começar';
   const greeting = displayName.trim().split(' ')[0];
-  const alertTasks = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= 3).sort((a, b) => a.due_date.localeCompare(b.due_date));
+  const alertTasks = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= (task.reminder_days ?? 3)).sort((a, b) => a.due_date.localeCompare(b.due_date));
   const calendarMonthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(calendarMonth);
   const calendarCells = useMemo(() => {
     const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
@@ -140,7 +142,7 @@ export default function App() {
     let active = true;
     const checkReminders = async () => {
       if (!active || document.visibilityState !== 'visible' || Notification.permission !== 'granted') return;
-      const pending = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= 3);
+      const pending = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= (task.reminder_days ?? 3));
       if (!pending.length) return;
       const todayKey = toLocalISODate(new Date());
       const storageKey = `ce-reminder-${session.user.id}-${todayKey}`;
@@ -197,10 +199,10 @@ export default function App() {
     setError('');
     setSaving(true);
     const { data, error: insertError } = await supabase.from('tasks')
-      .insert({ title, category: 'Pessoal', priority: newTaskPriority, due_date: newTaskDueDate || null, user_id: session.user.id })
+      .insert({ title, category: 'Pessoal', priority: newTaskPriority, due_date: newTaskDueDate || null, reminder_days: Number(newTaskReminderDays), user_id: session.user.id })
       .select('id,title,category,done,priority,due_date,progress,created_at').single();
     if (insertError) setError('Não foi possível salvar a tarefa. ' + insertError.message);
-    else { setTasks(current => [...current, data]); setNewTask(''); setNewTaskPriority('Média'); setNewTaskDueDate(''); }
+    else { setTasks(current => [...current, data]); setNewTask(''); setNewTaskPriority('Média'); setNewTaskDueDate(''); setNewTaskReminderDays(3); }
     setSaving(false);
   }
 
@@ -211,10 +213,10 @@ export default function App() {
     setError('');
     setSaving(true);
     const { data, error: insertError } = await supabase.from('tasks')
-      .insert({ title, category: 'Meta', priority: newGoalPriority, due_date: newGoalDueDate || null, progress: 0, user_id: session.user.id })
+      .insert({ title, category: 'Meta', priority: newGoalPriority, due_date: newGoalDueDate || null, reminder_days: Number(newGoalReminderDays), progress: 0, user_id: session.user.id })
       .select('id,title,category,done,priority,due_date,progress,created_at').single();
     if (insertError) setError('Não foi possível salvar a meta. ' + insertError.message);
-    else { setTasks(current => [...current, data]); setNewGoal(''); setNewGoalPriority('Média'); setNewGoalDueDate(''); }
+    else { setTasks(current => [...current, data]); setNewGoal(''); setNewGoalPriority('Média'); setNewGoalDueDate(''); setNewGoalReminderDays(3); }
     setSaving(false);
   }
 
@@ -278,6 +280,17 @@ export default function App() {
     }
   }
 
+  async function updateReminderDays(task, reminder_days) {
+    const nextDays = Number(reminder_days);
+    const previousDays = task.reminder_days ?? 3;
+    setTasks(current => current.map(item => item.id === task.id ? { ...item, reminder_days: nextDays } : item));
+    const { error: reminderError } = await supabase.from('tasks').update({ reminder_days: nextDays }).eq('id', task.id).eq('user_id', session.user.id);
+    if (reminderError) {
+      setTasks(current => current.map(item => item.id === task.id ? { ...item, reminder_days: previousDays } : item));
+      setError('Não foi possível atualizar o lembrete. ' + reminderError.message);
+    }
+  }
+
   async function updateDueDate(task, due_date) {
     const previousDate = task.due_date || null;
     setTasks(current => current.map(item => item.id === task.id ? { ...item, due_date: due_date || null } : item));
@@ -315,7 +328,7 @@ export default function App() {
       app: 'Crescimento Exponencial',
       version: 1,
       exportedAt: new Date().toISOString(),
-      tasks: tasks.map(({ title, category, done, priority, due_date, progress, created_at }) => ({ title, category, done, priority, due_date, progress, created_at }))
+      tasks: tasks.map(({ title, category, done, priority, due_date, progress, reminder_days, created_at }) => ({ title, category, done, priority, due_date, progress, reminder_days, created_at }))
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -353,6 +366,7 @@ export default function App() {
           priority: validPriorities.includes(item.priority) ? item.priority : 'Média',
           due_date: dueDate,
           progress: Number.isInteger(item.progress) ? Math.max(0, Math.min(100, item.progress)) : 0,
+          reminder_days: [1, 3, 7, 15].includes(Number(item.reminder_days)) ? Number(item.reminder_days) : 3,
           user_id: session.user.id
         };
       });
@@ -496,16 +510,16 @@ export default function App() {
           <article className="stat-card"><div className="stat-icon violet">◎</div><span>Foco do dia</span><strong>{actionTasks.length - completed}<small> pendentes</small></strong><div className="stat-note">Continue no seu ritmo.</div></article>
         </div>
         <div className="content-grid"><section className="panel tasks-panel"><div className="panel-heading"><div><h3>Minhas tarefas</h3><p>Transforme planos em atitudes.</p></div><span className="count">{completed}/{actionTasks.length}</span></div>
-          <form className="add-form" onSubmit={addTask}><input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Adicione uma nova tarefa..." aria-label="Nova tarefa"/><select className="priority-select" value={newTaskPriority} onChange={e => setNewTaskPriority(e.target.value)} aria-label="Prioridade da tarefa"><option>Baixa</option><option>Média</option><option>Alta</option></select><input className="due-date-input" type="date" value={newTaskDueDate} onChange={e => setNewTaskDueDate(e.target.value)} aria-label="Data de vencimento da tarefa"/><button type="submit" disabled={saving || !newTask.trim()}>{saving ? 'Salvando...' : 'Adicionar'}</button></form>
+          <form className="add-form" onSubmit={addTask}><input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Adicione uma nova tarefa..." aria-label="Nova tarefa"/><select className="priority-select" value={newTaskPriority} onChange={e => setNewTaskPriority(e.target.value)} aria-label="Prioridade da tarefa"><option>Baixa</option><option>Média</option><option>Alta</option></select><input className="due-date-input" type="date" value={newTaskDueDate} onChange={e => setNewTaskDueDate(e.target.value)} aria-label="Data de vencimento da tarefa"/><select className="priority-select" value={newTaskReminderDays} onChange={e => setNewTaskReminderDays(Number(e.target.value))} aria-label="Antecedência do lembrete"><option value={1}>Lembrar 1 dia antes</option><option value={3}>Lembrar 3 dias antes</option><option value={7}>Lembrar 7 dias antes</option><option value={15}>Lembrar 15 dias antes</option></select><button type="submit" disabled={saving || !newTask.trim()}>{saving ? 'Salvando...' : 'Adicionar'}</button></form>
           <div className="task-search"><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar pelo nome..." aria-label="Buscar tarefas"/></div>
           <div className="task-filters" aria-label="Filtrar tarefas">{['Todas', 'Pendentes', 'Concluídas'].map(filter => <button type="button" key={filter} className={taskFilter === filter ? 'task-filter active' : 'task-filter'} onClick={() => setTaskFilter(filter)}>{filter}</button>)}</div>
           {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{visibleActionTasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}>
             <button type="button" className={task.done ? "task-complete-button checked" : "task-complete-button"} onClick={() => toggleTask(task)} aria-pressed={task.done} aria-label={task.done ? "Reabrir tarefa" : "Concluir tarefa"}>{task.done ? "✓" : ""}</button>
-            <span className="task-title">{task.title}<small>{task.category}{dueDateLabel(task) ? ` • ${dueDateLabel(task)}` : ''}</small></span><input className="due-date-input item-due-date" type="date" value={task.due_date || ''} onChange={e => updateDueDate(task, e.target.value)} aria-label="Alterar vencimento da tarefa"/><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><select className={'priority-badge priority-' + (task.priority || 'Média').toLocaleLowerCase('pt-BR')} value={task.priority || 'Média'} onChange={e => updatePriority(task, e.target.value)} aria-label="Alterar prioridade"><option>Baixa</option><option>Média</option><option>Alta</option></select><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button><button type="button" onClick={() => deleteTask(task)} disabled={saving} aria-label="Excluir tarefa" title="Excluir tarefa" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button>
+            <span className="task-title">{task.title}<small>{task.category}{dueDateLabel(task) ? ` • ${dueDateLabel(task)}` : ''}</small></span><input className="due-date-input item-due-date" type="date" value={task.due_date || ''} onChange={e => updateDueDate(task, e.target.value)} aria-label="Alterar vencimento da tarefa"/><select className="priority-badge" value={task.reminder_days ?? 3} onChange={e => updateReminderDays(task, e.target.value)} aria-label="Antecedência do lembrete"><option value={1}>1 dia</option><option value={3}>3 dias</option><option value={7}>7 dias</option><option value={15}>15 dias</option></select><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><select className={'priority-badge priority-' + (task.priority || 'Média').toLocaleLowerCase('pt-BR')} value={task.priority || 'Média'} onChange={e => updatePriority(task, e.target.value)} aria-label="Alterar prioridade"><option>Baixa</option><option>Média</option><option>Alta</option></select><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button><button type="button" onClick={() => deleteTask(task)} disabled={saving} aria-label="Excluir tarefa" title="Excluir tarefa" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button>
           </div>)}
           {actionTasks.length === 0 ? <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p> : visibleActionTasks.length === 0 && <p className="empty">Nenhuma tarefa encontrada neste filtro.</p>}</div>}
         </section><aside className="panel progress-panel"><div className="panel-heading"><div><h3>Seu ritmo</h3><p>O progresso de hoje</p></div></div><div className="ring" style={{'--progress': progress + '%'}}><div><strong>{progress}%</strong><small>concluído</small></div></div><p className="motivation">{progress === 100 ? 'Excelente! Você concluiu tudo.' : 'A constância é mais importante que a velocidade.'}</p></aside></div>
-      </> : <section className="panel goals-panel"><div className="panel-heading"><div><h3>Minhas metas</h3><p>Defina objetivos e acompanhe suas conquistas.</p></div><span className="count">{completedGoals}/{goals.length} concluídas</span></div><form className="add-form" onSubmit={addGoal}><input value={newGoal} onChange={e => setNewGoal(e.target.value)} placeholder="Ex.: Ler 12 livros este ano..." aria-label="Nova meta"/><select className="priority-select" value={newGoalPriority} onChange={e => setNewGoalPriority(e.target.value)} aria-label="Prioridade da meta"><option>Baixa</option><option>Média</option><option>Alta</option></select><input className="due-date-input" type="date" value={newGoalDueDate} onChange={e => setNewGoalDueDate(e.target.value)} aria-label="Data de vencimento da meta"/><button type="submit" disabled={saving || !newGoal.trim()}>{saving ? 'Salvando...' : 'Criar meta'}</button></form><div className="task-search"><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar pelo nome..." aria-label="Buscar tarefas"/></div><div className="task-filters" aria-label="Filtrar metas">{['Todas', 'Pendentes', 'Concluídas'].map(filter => <button type="button" key={filter} className={taskFilter === filter ? 'task-filter active' : 'task-filter'} onClick={() => setTaskFilter(filter)}>{filter}</button>)}</div><p className="goal-message">Cada meta fica salva na sua conta. Marque quando concluir ou edite e exclua quando precisar.</p><div className="task-list">{visibleGoals.map(goal => <div className={goal.done ? 'task done' : 'task'} key={goal.id}><button type="button" className={goal.done ? "task-complete-button checked" : "task-complete-button"} onClick={() => toggleTask(goal)} aria-pressed={goal.done} aria-label={goal.done ? "Reabrir meta" : "Concluir meta"}>{goal.done ? "✓" : ""}</button><span className="task-title">{goal.title}<small>Meta pessoal • {goal.done ? 100 : (goal.progress || 0)}% concluído{dueDateLabel(goal) ? ` • ${dueDateLabel(goal)}` : ''}</small><span className="goal-progress-track"><i style={{width: (goal.done ? 100 : (goal.progress || 0)) + '%'}}/></span></span><input className="goal-progress-input" type="range" min="0" max="100" step="5" value={goal.done ? 100 : (goal.progress || 0)} onChange={e => updateGoalProgress(goal, e.target.value)} aria-label="Progresso da meta em porcentagem" disabled={goal.done}/><input className="due-date-input item-due-date" type="date" value={goal.due_date || ''} onChange={e => updateDueDate(goal, e.target.value)} aria-label="Alterar vencimento da meta"/><span className="task-state">{goal.done ? 'Concluída' : 'Em andamento'}</span><select className={'priority-badge priority-' + (goal.priority || 'Média').toLocaleLowerCase('pt-BR')} value={goal.priority || 'Média'} onChange={e => updatePriority(goal, e.target.value)} aria-label="Alterar prioridade"><option>Baixa</option><option>Média</option><option>Alta</option></select><button type="button" className="task-edit-button" onClick={() => startEditing(goal)} aria-label="Editar meta">✎</button><button type="button" onClick={() => deleteTask(goal)} disabled={saving} aria-label="Excluir meta" title="Excluir meta" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button></div>)}{goals.length === 0 ? <p className="empty">Você ainda não criou metas. Comece adicionando sua primeira meta acima.</p> : visibleGoals.length === 0 && <p className="empty">Nenhuma meta encontrada neste filtro.</p>}</div></section>}
+      </> : <section className="panel goals-panel"><div className="panel-heading"><div><h3>Minhas metas</h3><p>Defina objetivos e acompanhe suas conquistas.</p></div><span className="count">{completedGoals}/{goals.length} concluídas</span></div><form className="add-form" onSubmit={addGoal}><input value={newGoal} onChange={e => setNewGoal(e.target.value)} placeholder="Ex.: Ler 12 livros este ano..." aria-label="Nova meta"/><select className="priority-select" value={newGoalPriority} onChange={e => setNewGoalPriority(e.target.value)} aria-label="Prioridade da meta"><option>Baixa</option><option>Média</option><option>Alta</option></select><input className="due-date-input" type="date" value={newGoalDueDate} onChange={e => setNewGoalDueDate(e.target.value)} aria-label="Data de vencimento da meta"/><select className="priority-select" value={newGoalReminderDays} onChange={e => setNewGoalReminderDays(Number(e.target.value))} aria-label="Antecedência do lembrete"><option value={1}>Lembrar 1 dia antes</option><option value={3}>Lembrar 3 dias antes</option><option value={7}>Lembrar 7 dias antes</option><option value={15}>Lembrar 15 dias antes</option></select><button type="submit" disabled={saving || !newGoal.trim()}>{saving ? 'Salvando...' : 'Criar meta'}</button></form><div className="task-search"><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar pelo nome..." aria-label="Buscar tarefas"/></div><div className="task-filters" aria-label="Filtrar metas">{['Todas', 'Pendentes', 'Concluídas'].map(filter => <button type="button" key={filter} className={taskFilter === filter ? 'task-filter active' : 'task-filter'} onClick={() => setTaskFilter(filter)}>{filter}</button>)}</div><p className="goal-message">Cada meta fica salva na sua conta. Marque quando concluir ou edite e exclua quando precisar.</p><div className="task-list">{visibleGoals.map(goal => <div className={goal.done ? 'task done' : 'task'} key={goal.id}><button type="button" className={goal.done ? "task-complete-button checked" : "task-complete-button"} onClick={() => toggleTask(goal)} aria-pressed={goal.done} aria-label={goal.done ? "Reabrir meta" : "Concluir meta"}>{goal.done ? "✓" : ""}</button><span className="task-title">{goal.title}<small>Meta pessoal • {goal.done ? 100 : (goal.progress || 0)}% concluído{dueDateLabel(goal) ? ` • ${dueDateLabel(goal)}` : ''}</small><span className="goal-progress-track"><i style={{width: (goal.done ? 100 : (goal.progress || 0)) + '%'}}/></span></span><input className="goal-progress-input" type="range" min="0" max="100" step="5" value={goal.done ? 100 : (goal.progress || 0)} onChange={e => updateGoalProgress(goal, e.target.value)} aria-label="Progresso da meta em porcentagem" disabled={goal.done}/><input className="due-date-input item-due-date" type="date" value={goal.due_date || ''} onChange={e => updateDueDate(goal, e.target.value)} aria-label="Alterar vencimento da meta"/><select className="priority-badge" value={goal.reminder_days ?? 3} onChange={e => updateReminderDays(goal, e.target.value)} aria-label="Antecedência do lembrete"><option value={1}>1 dia</option><option value={3}>3 dias</option><option value={7}>7 dias</option><option value={15}>15 dias</option></select><span className="task-state">{goal.done ? 'Concluída' : 'Em andamento'}</span><select className={'priority-badge priority-' + (goal.priority || 'Média').toLocaleLowerCase('pt-BR')} value={goal.priority || 'Média'} onChange={e => updatePriority(goal, e.target.value)} aria-label="Alterar prioridade"><option>Baixa</option><option>Média</option><option>Alta</option></select><button type="button" className="task-edit-button" onClick={() => startEditing(goal)} aria-label="Editar meta">✎</button><button type="button" onClick={() => deleteTask(goal)} disabled={saving} aria-label="Excluir meta" title="Excluir meta" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button></div>)}{goals.length === 0 ? <p className="empty">Você ainda não criou metas. Comece adicionando sua primeira meta acima.</p> : visibleGoals.length === 0 && <p className="empty">Nenhuma meta encontrada neste filtro.</p>}</div></section>}
       <footer>© {new Date().getFullYear()} Crescimento Exponencial <span>•</span> Evolua um dia de cada vez. Seus dados ficam vinculados à sua conta.</footer>
     </main>
   </div>;

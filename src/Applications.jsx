@@ -16,7 +16,8 @@ export function CandidateApplicationForm({ opportunity, onClose }) {
       if (user) setForm(current => ({
         ...current,
         full_name: user.user_metadata?.name || '',
-        email: user.email || ''
+        email: user.email || '',
+        phone: user.user_metadata?.phone || ''
       }));
     });
   }, []);

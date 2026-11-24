@@ -115,6 +115,8 @@ export function CompanyApplications({ opportunities = [] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   async function load() {
     const ids = opportunities.map(item => item.id);
@@ -143,18 +145,52 @@ export function CompanyApplications({ opportunities = [] }) {
   }
 
   const titles = Object.fromEntries(opportunities.map(item => [item.id, item.title]));
+  const normalizedSearch = searchTerm.trim().toLocaleLowerCase('pt-BR');
+  const filteredItems = items.filter(item => {
+    const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+    const matchesSearch = !normalizedSearch ||
+      item.full_name.toLocaleLowerCase('pt-BR').includes(normalizedSearch) ||
+      item.email.toLocaleLowerCase('pt-BR').includes(normalizedSearch) ||
+      (titles[item.opportunity_id] || '').toLocaleLowerCase('pt-BR').includes(normalizedSearch);
+    return matchesStatus && matchesSearch;
+  });
+  const counts = {
+    all: items.length,
+    pending: items.filter(item => item.status === 'pending').length,
+    reviewing: items.filter(item => item.status === 'reviewing').length,
+    approved: items.filter(item => item.status === 'approved').length,
+    rejected: items.filter(item => item.status === 'rejected').length
+  };
+
   return <section className="panel company-list-panel applications-list-panel" style={{ marginTop: 18 }}>
     <div className="panel-heading"><div><h3>Candidatos às minhas oportunidades</h3><p>Visualize os dados e atualize o andamento de cada candidatura.</p></div><button type="button" className="logout-button" onClick={load} disabled={loading}>Atualizar</button></div>
+    <div className="application-management-summary">
+      <div><strong>{counts.all}</strong><span>Total</span></div>
+      <div><strong>{counts.pending}</strong><span>Novas</span></div>
+      <div><strong>{counts.reviewing}</strong><span>Em análise</span></div>
+      <div><strong>{counts.approved}</strong><span>Aprovadas</span></div>
+      <div><strong>{counts.rejected}</strong><span>Não selecionadas</span></div>
+    </div>
+    <div className="application-management-filters">
+      <label>Buscar candidato ou oportunidade<input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Nome, e-mail ou oportunidade" /></label>
+      <label>Filtrar por situação<select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+        <option value="all">Todas as situações</option>
+        <option value="pending">Novas</option>
+        <option value="reviewing">Em análise</option>
+        <option value="approved">Aprovadas</option>
+        <option value="rejected">Não selecionadas</option>
+      </select></label>
+    </div>
     {error && <p className="admin-error" role="alert">{error}</p>}
-    {loading ? <p className="empty">Carregando candidatos...</p> : items.length ? items.map(item => <article className="admin-record applicant-record" key={item.id}>
+    {loading ? <p className="empty">Carregando candidatos...</p> : filteredItems.length ? filteredItems.map(item => <article className="admin-record applicant-record" key={item.id}>
       <div className="admin-record-main"><strong>{item.full_name}</strong><span>{titles[item.opportunity_id] || 'Oportunidade'}</span><a href={'mailto:' + item.email}>{item.email}</a>{item.phone && <small>{item.phone}</small>}{item.resume_url && <a href={item.resume_url} target="_blank" rel="noreferrer">Abrir currículo</a>}{item.message && <p className="applicant-message">{item.message}</p>}<small>Recebida em {new Date(item.created_at).toLocaleDateString('pt-BR')}</small></div>
       <span className={'admin-status status-' + item.status}>{labels[item.status] || item.status}</span>
       <ApplicationMessages applicationId={item.id} />
       <div className="admin-actions application-status-actions">
-        <button type="button" className="muted" disabled={savingId === item.id} onClick={() => changeStatus(item, 'reviewing')}>Em análise</button>
-        <button type="button" disabled={savingId === item.id} onClick={() => changeStatus(item, 'approved')}>Aprovar</button>
-        <button type="button" className="danger" disabled={savingId === item.id} onClick={() => changeStatus(item, 'rejected')}>Rejeitar</button>
+        <button type="button" className="muted" disabled={savingId === item.id || item.status === 'reviewing'} onClick={() => changeStatus(item, 'reviewing')}>Em análise</button>
+        <button type="button" disabled={savingId === item.id || item.status === 'approved'} onClick={() => changeStatus(item, 'approved')}>Aprovar</button>
+        <button type="button" className="danger" disabled={savingId === item.id || item.status === 'rejected'} onClick={() => changeStatus(item, 'rejected')}>Rejeitar</button>
       </div>
-    </article>) : <p className="empty">Ainda não há candidatos para suas oportunidades.</p>}
+    </article>) : items.length ? <p className="empty">Nenhuma candidatura corresponde à busca e ao filtro selecionados.</p> : <p className="empty">Ainda não há candidatos para suas oportunidades.</p>}
   </section>;
 }

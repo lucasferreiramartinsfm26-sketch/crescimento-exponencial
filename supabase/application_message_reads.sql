@@ -55,4 +55,13 @@ using (
       and (a.candidate_id = auth.uid() or c.owner_id = auth.uid())
   )
 )
-with check (user_id = auth.uid());
+with check (
+  user_id = auth.uid()
+  and exists (
+    select 1 from public.opportunity_applications a
+    join public.opportunities o on o.id = a.opportunity_id
+    join public.company_profiles c on c.id = o.company_id
+    where a.id = application_id
+      and (a.candidate_id = auth.uid() or c.owner_id = auth.uid())
+  )
+);

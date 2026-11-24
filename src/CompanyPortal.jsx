@@ -23,6 +23,7 @@ export default function CompanyPortal() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [editingCompanyId, setEditingCompanyId] = useState(null);
   const [form, setForm] = useState({ name: '', cnpj: '', email: '', phone: '', website: '', description: '' });
   const [opportunityForm, setOpportunityForm] = useState(emptyOpportunity);
 
@@ -66,6 +67,20 @@ export default function CompanyPortal() {
     setOpportunityForm(current => ({ ...current, [event.target.name]: event.target.value }));
   }
 
+  function startCompanyEdit(company) {
+    setEditingCompanyId(company.id);
+    setForm({ name: company.name || '', cnpj: company.cnpj || '', email: company.email || '', phone: company.phone || '', website: company.website || '', description: company.description || '' });
+    setError('');
+    setMessage('Editando cadastro pendente. Salve as alterações ou cancele.');
+  }
+
+  function cancelCompanyEdit() {
+    setEditingCompanyId(null);
+    setForm({ name: '', cnpj: '', email: '', phone: '', website: '', description: '' });
+    setError('');
+    setMessage('');
+  }
+
   async function submit(event) {
     event.preventDefault();
     setError('');
@@ -88,11 +103,15 @@ export default function CompanyPortal() {
       description: form.description.trim(),
       status: 'pending'
     };
-    const { error: insertError } = await supabase.from('company_profiles').insert(payload);
-    if (insertError) setError('Não foi possível enviar o cadastro. ' + insertError.message);
+    const result = editingCompanyId
+      ? await supabase.from('company_profiles').update({ name: payload.name, cnpj: payload.cnpj, email: payload.email, phone: payload.phone, website: payload.website, description: payload.description }).eq('id', editingCompanyId).eq('status', 'pending')
+      : await supabase.from('company_profiles').insert(payload);
+    if (result.error) setError('Não foi possível salvar o cadastro. ' + result.error.message);
     else {
+      const wasEditing = Boolean(editingCompanyId);
+      setEditingCompanyId(null);
       setForm({ name: '', cnpj: '', email: '', phone: '', website: '', description: '' });
-      setMessage('Cadastro enviado! Nossa equipe irá analisar as informações.');
+      setMessage(wasEditing ? 'Cadastro atualizado com sucesso.' : 'Cadastro enviado! Nossa equipe irá analisar as informações.');
       await loadCompanies();
     }
     setSaving(false);
@@ -137,7 +156,7 @@ export default function CompanyPortal() {
     <div className="section-heading"><div><h2>Área da empresa</h2><p>Cadastre sua empresa e acompanhe suas oportunidades.</p></div></div>
     <div className="company-layout">
       <section className="panel company-form-panel">
-        <div className="panel-heading"><div><h3>Cadastrar empresa</h3><p>O cadastro passa por aprovação antes de liberar publicações.</p></div></div>
+        <div className="panel-heading"><div><h3>{editingCompanyId ? 'Editar cadastro da empresa' : 'Cadastrar empresa'}</h3><p>Cadastros pendentes podem ser corrigidos antes da aprovação.</p></div></div>
         <form className="company-form" onSubmit={submit}>
           <label>Nome da empresa<input name="name" value={form.name} onChange={updateField} minLength="2" maxLength="160" placeholder="Razão social ou nome fantasia" required /></label>
           <label>CNPJ<input name="cnpj" value={form.cnpj} onChange={updateField} inputMode="numeric" maxLength="18" placeholder="00.000.000/0000-00" required /></label>
@@ -145,7 +164,7 @@ export default function CompanyPortal() {
           <label>Telefone<input name="phone" type="tel" value={form.phone} onChange={updateField} placeholder="(00) 00000-0000" required /></label>
           <label>Site (opcional)<input name="website" type="url" value={form.website} onChange={updateField} placeholder="https://www.empresa.com.br" /></label>
           <label className="company-description">Sobre a empresa<textarea name="description" value={form.description} onChange={updateField} rows="4" maxLength="1200" placeholder="Conte brevemente sobre a empresa e suas atividades." required /></label>
-          <button type="submit" disabled={saving}>{saving ? 'Enviando cadastro...' : 'Enviar para aprovação'}</button>
+          <button type="submit" disabled={saving}>{saving ? 'Salvando...' : editingCompanyId ? 'Salvar alterações' : 'Enviar para aprovação'}</button>{editingCompanyId && <button type="button" className="logout-button" onClick={cancelCompanyEdit} disabled={saving}>Cancelar edição</button>}
         </form>
       </section>
       <section className="panel company-list-panel">
@@ -153,6 +172,7 @@ export default function CompanyPortal() {
         {loading ? <p className="empty">Carregando...</p> : companies.length ? companies.map(company => <article className="admin-record" key={company.id}>
           <div className="admin-record-main"><strong>{company.name}</strong><span>{company.cnpj || 'CNPJ não informado'} • {company.email}</span><small>{company.phone || ''}</small><small>Enviado em {new Date(company.created_at).toLocaleDateString('pt-BR')}</small></div>
           <span className={'admin-status status-' + company.status}>{statusLabels[company.status] || company.status}</span>
+          {company.status === 'pending' && <button type="button" className="logout-button" onClick={() => startCompanyEdit(company)}>Editar cadastro</button>}
           {company.status === 'approved' && <p className="company-approved-note">Empresa aprovada. Você já pode cadastrar oportunidades.</p>}
           {company.status === 'rejected' && <p className="company-rejected-note">Cadastro não aprovado. Entre em contato com o suporte para orientações.</p>}
           {company.status === 'suspended' && <p className="company-rejected-note">Cadastro suspenso. Entre em contato com o suporte para orientações.</p>}

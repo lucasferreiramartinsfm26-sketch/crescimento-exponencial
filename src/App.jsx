@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './lib/supabase';
 
 function toLocalISODate(date) {
@@ -32,6 +32,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => typeof Notification !== 'undefined' && Notification.permission === 'granted');
+  const backupInputRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -285,6 +286,70 @@ export default function App() {
     setSaving(false);
   }
 
+  function exportBackup() {
+    const backup = {
+      app: 'Crescimento Exponencial',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      tasks: tasks.map(({ title, category, done, priority, due_date, created_at }) => ({ title, category, done, priority, due_date, created_at }))
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'crescimento-exponencial-backup.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importBackup(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !session?.user?.id) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed || parsed.app !== 'Crescimento Exponencial' || !Array.isArray(parsed.tasks) || parsed.tasks.length > 500) {
+        throw new Error('Arquivo de backup inválido ou com mais de 500 itens.');
+      }
+      const validPriorities = ['Baixa', 'Média', 'Alta'];
+      const rows = parsed.tasks.map(item => {
+        if (!item || typeof item.title !== 'string' || !item.title.trim() || item.title.length > 500) {
+          throw new Error('O backup contém uma tarefa sem título válido.');
+        }
+        const dueDate = item.due_date || null;
+        if (dueDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) {
+          throw new Error('O backup contém uma data inválida.');
+        }
+        return {
+          title: item.title.trim(),
+          category: item.category === 'Meta' ? 'Meta' : 'Pessoal',
+          done: item.done === true,
+          priority: validPriorities.includes(item.priority) ? item.priority : 'Média',
+          due_date: dueDate,
+          user_id: session.user.id
+        };
+      });
+      if (!window.confirm('Importar ' + rows.length + ' itens? Eles serão adicionados à sua conta sem apagar os itens atuais.')) return;
+      if (!rows.length) {
+        setAuthMessage('O backup está vazio. Nenhum item foi importado.');
+        return;
+      }
+      setSaving(true);
+      setError('');
+      const { data, error: importError } = await supabase.from('tasks')
+        .insert(rows).select('id,title,category,done,priority,due_date,created_at');
+      if (importError) throw importError;
+      setTasks(current => [...current, ...(data || [])]);
+      setAuthMessage(rows.length + ' itens importados com sucesso.');
+    } catch (err) {
+      setError('Não foi possível importar o backup. ' + (err.message || 'Verifique o arquivo.'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function logout() {
     const { error: logoutError } = await supabase.auth.signOut();
     if (logoutError) setError(logoutError.message);
@@ -319,7 +384,7 @@ export default function App() {
       <div className="sidebar-bottom"><div className="status-dot"></div><div><b>Seu espaço de evolução</b><small>Um passo de cada vez.</small></div></div>
     </aside>
     <main className="main">
-      <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><button type="button" className="logout-button" onClick={enableNotifications}>{notificationsEnabled ? "Alertas ativados ✓" : "Ativar alertas"}</button><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
+      <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><button type="button" className="logout-button backup-button" onClick={exportBackup} disabled={!tasks.length}>Exportar backup</button><button type="button" className="logout-button backup-button" onClick={() => backupInputRef.current?.click()}>Importar backup</button><input ref={backupInputRef} type="file" accept="application/json,.json" onChange={importBackup} hidden/><button type="button" className="logout-button" onClick={enableNotifications}>{notificationsEnabled ? "Alertas ativados ✓" : "Ativar alertas"}</button><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
       <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : item === 'Calendário' ? '▣ Calendário' : '▤ Relatórios'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>
       {error && <div className="app-error" role="alert">{error}</div>}

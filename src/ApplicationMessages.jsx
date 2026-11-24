@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 
-function readKey(applicationId, userId) {
-  return 'ce-message-read:' + userId + ':' + applicationId;
-}
-
 export default function ApplicationMessages({ applicationId }) {
   const [messages, setMessages] = useState([]);
   const [body, setBody] = useState('');
@@ -15,15 +11,20 @@ export default function ApplicationMessages({ applicationId }) {
   const [expanded, setExpanded] = useState(false);
   const [unread, setUnread] = useState(0);
 
-  const loadUnread = useCallback(async (currentUserId) => {
+  const loadUnread = useCallback(async currentUserId => {
     if (!currentUserId) return;
-    const lastRead = localStorage.getItem(readKey(applicationId, currentUserId)) || '1970-01-01T00:00:00.000Z';
-    const { data, error: queryError } = await supabase.from('application_messages')
-      .select('id')
+    const { data: readRow } = await supabase.from('application_message_reads')
+      .select('last_read_at')
+      .eq('application_id', applicationId)
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    const lastRead = readRow?.last_read_at || '1970-01-01T00:00:00.000Z';
+    const { count, error: queryError } = await supabase.from('application_messages')
+      .select('id', { count: 'exact', head: true })
       .eq('application_id', applicationId)
       .neq('sender_id', currentUserId)
       .gt('created_at', lastRead);
-    if (!queryError) setUnread((data || []).length);
+    if (!queryError) setUnread(count || 0);
   }, [applicationId]);
 
   const load = useCallback(async (markAsRead = false) => {
@@ -48,7 +49,12 @@ export default function ApplicationMessages({ applicationId }) {
       setMessages(rows);
       if (markAsRead) {
         const lastVisible = rows.length ? rows[rows.length - 1].created_at : new Date().toISOString();
-        localStorage.setItem(readKey(applicationId, currentUserId), lastVisible);
+        const { error: readError } = await supabase.from('application_message_reads').upsert({
+          application_id: applicationId,
+          user_id: currentUserId,
+          last_read_at: lastVisible
+        }, { onConflict: 'application_id,user_id' });
+        if (readError) setError('Não foi possível registrar a leitura. ' + readError.message);
       }
       await loadUnread(currentUserId);
     }

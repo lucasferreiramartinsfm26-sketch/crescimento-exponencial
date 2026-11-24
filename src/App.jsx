@@ -122,6 +122,17 @@ export default function App() {
     }
   }
 
+  async function deleteTask(task) {
+    if (!window.confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+    setSaving(true);
+    setError('');
+    const { error: deleteError } = await supabase.from('tasks').delete()
+      .eq('id', task.id).eq('user_id', session.user.id);
+    if (deleteError) setError('Não foi possível excluir a tarefa. ' + deleteError.message);
+    else setTasks(current => current.filter(item => item.id !== task.id));
+    setSaving(false);
+  }
+
   async function logout() {
     const { error: logoutError } = await supabase.auth.signOut();
     if (logoutError) setError(logoutError.message);
@@ -171,7 +182,7 @@ export default function App() {
           {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{tasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}>
             <input type="checkbox" checked={task.done} onChange={() => toggleTask(task)} aria-label={task.done ? 'Reabrir tarefa' : 'Concluir tarefa'}/>
             <span className="checkmark"></span>
-            <span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button>
+            <span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button><button type="button" onClick={() => deleteTask(task)} disabled={saving} aria-label="Excluir tarefa" title="Excluir tarefa" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button>
           </div>)}
           {tasks.length === 0 && <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p>}</div>}
         </section><aside className="panel progress-panel"><div className="panel-heading"><div><h3>Seu ritmo</h3><p>O progresso de hoje</p></div></div><div className="ring" style={{'--progress': progress + '%'}}><div><strong>{progress}%</strong><small>concluído</small></div></div><p className="motivation">{progress === 100 ? 'Excelente! Você concluiu tudo.' : 'A constância é mais importante que a velocidade.'}</p></aside></div>

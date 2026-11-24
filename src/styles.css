@@ -303,3 +303,11 @@ footer{padding-top:36px}
 .application-chat-form button{align-self:stretch;border:0;border-radius:8px;background:#0b9c6b;color:#fff;padding:9px 12px;font:700 10px 'DM Sans',Arial,sans-serif;cursor:pointer}
 .application-chat-form button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:650px){.application-chat{padding:9px}.application-chat-form{grid-template-columns:1fr}.application-chat-form button{padding:11px}}
+
+
+/* Avisos de mensagens não lidas e conversas recolhíveis */
+.application-chat-heading strong{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.message-unread-badge{display:inline-flex;align-items:center;border-radius:20px;background:#fff0d8;color:#925b00;padding:4px 8px;font-size:9px;font-weight:800}
+.application-chat-hint{margin:0;color:#8290a2;font-size:10px;line-height:1.5}
+.application-chat-tools{display:flex;justify-content:flex-end;margin-top:8px}
+@media(max-width:650px){.application-chat-heading{align-items:flex-start}.application-chat-heading .logout-button{white-space:nowrap}.application-chat-tools{justify-content:stretch}.application-chat-tools button{width:100%}}

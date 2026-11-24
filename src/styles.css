@@ -173,3 +173,14 @@ footer{padding-top:36px}
 .report-note{font-size:10px;line-height:1.6;color:#8995a5;margin:16px 0 0}
 @media(max-width:950px){.reports-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.reports-stats{grid-template-columns:1fr}.reports-grid{gap:12px}.report-panel{padding:17px}.report-bar-row{gap:7px}.report-breakdown>div{padding:12px}}
+
+
+/* Ferramentas de backup */
+.backup-tools{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-22px 0 24px;padding:14px 17px;background:#fff;border:1px solid #e5edf1;border-radius:13px}
+.backup-tools strong,.backup-tools small{display:block}
+.backup-tools strong{font-size:12px;color:#18334d}
+.backup-tools small{font-size:10px;color:#8290a2;margin-top:4px}
+.backup-actions{display:flex;gap:8px;flex-wrap:wrap}
+.backup-actions button{white-space:nowrap}
+.backup-actions button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:650px){.backup-tools{margin:-12px 0 20px;align-items:flex-start;flex-direction:column;padding:13px}.backup-actions{width:100%}.backup-actions button{flex:1;padding:9px 10px;font-size:10px}}

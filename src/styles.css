@@ -194,3 +194,15 @@ footer{padding-top:36px}
 /* Mantém controles de progresso e datas visíveis nas linhas de tarefas/metas. */
 .task .goal-progress-input,.task .item-due-date{position:static!important;opacity:1!important;display:block;}
 .task .goal-progress-input{height:24px;min-width:84px;}
+
+
+/* Painel Minha evolução */
+.evolution-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.evolution-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:end;min-height:190px;padding:8px 0}
+.evolution-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:9px;height:175px}
+.evolution-day strong{font-size:11px;color:#34465b}
+.evolution-day span{font-size:10px;color:#8190a2;text-transform:capitalize}
+.evolution-track{height:125px;width:min(100%,30px);display:flex;align-items:flex-end;overflow:hidden;border-radius:10px;background:#edf2f5}
+.evolution-track i{display:block;width:100%;min-height:0;border-radius:10px;background:linear-gradient(180deg,#56d9a8,#17a875);transition:height .25s}
+@media(max-width:950px){.evolution-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.evolution-stats{grid-template-columns:1fr}.evolution-grid{gap:12px}.evolution-week{gap:6px}.evolution-day{height:160px}.evolution-track{height:110px;width:min(100%,25px)}}

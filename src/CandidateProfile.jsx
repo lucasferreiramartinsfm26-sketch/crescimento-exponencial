@@ -53,12 +53,29 @@ export default function CandidateProfile() {
 
   if (loading) return <section className="panel profile-panel"><p className="empty">Carregando seu perfil...</p></section>;
 
+  const recommendedFields = [
+    ['name', 'Nome completo'],
+    ['profession', 'Área profissional'],
+    ['phone', 'Telefone'],
+    ['city', 'Cidade/Estado'],
+    ['about', 'Resumo profissional']
+  ];
+  const missingFields = recommendedFields.filter(([key]) => !form[key].trim());
+  const completion = Math.round(((recommendedFields.length - missingFields.length) / recommendedFields.length) * 100);
+
   return <section className="profile-page">
     <div className="section-heading"><div><h2>Meu perfil profissional</h2><p>Apresente suas informações para empresas e mantenha seus dados atualizados.</p></div></div>
     <div className="panel profile-panel">
       <div className="profile-summary">
         <div className="profile-avatar">{(form.name || email || 'U').trim().slice(0, 1).toUpperCase()}</div>
         <div><strong>{form.name || 'Seu nome'}</strong><span>{form.profession || 'Adicione sua área profissional'}</span><small>{email}</small></div>
+      </div>
+      <div className="profile-completion" aria-live="polite">
+        <div className="profile-completion-heading"><strong>Completude do perfil</strong><span>{completion}%</span></div>
+        <progress value={completion} max="100" aria-label={`Perfil profissional ${completion}% completo`} />
+        {missingFields.length
+          ? <p>Para deixar seu perfil mais completo, adicione: {missingFields.map(([, label]) => label).join(', ')}.</p>
+          : <p>Ótimo! Você preencheu todos os dados principais do perfil.</p>}
       </div>
       <form className="company-form profile-form" onSubmit={save}>
         <label>Nome completo<input name="name" value={form.name} onChange={update} maxLength="120" required placeholder="Seu nome completo" /></label>

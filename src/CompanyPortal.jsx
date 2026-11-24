@@ -96,7 +96,7 @@ export default function CompanyPortal() {
     const payload = {
       owner_id: user.id,
       name: form.name.trim(),
-      cnpj: form.cnpj.replace(/\\D/g, ''),
+      cnpj: form.cnpj.replace(/\D/g, ''),
       email: form.email.trim(),
       phone: form.phone.trim(),
       website: form.website.trim() || null,

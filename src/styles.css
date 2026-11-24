@@ -131,3 +131,13 @@ footer{padding-top:36px}
 .task-search{margin:0 0 10px}
 .task-search input{width:100%;border:1px solid #e3eaf0;border-radius:9px;background:#f8fafc;color:#15243a;padding:11px 13px;font:12px 'DM Sans',Arial,sans-serif;outline:none}
 .task-search input:focus{border-color:#21b77d;box-shadow:0 0 0 3px #16ad7818}
+
+
+/* Prioridades para tarefas e metas */
+.priority-select,.priority-badge{border:1px solid #e1e8ef;border-radius:8px;background:#fff;color:#526174;padding:9px 10px;font:600 11px 'DM Sans',Arial,sans-serif;cursor:pointer}
+.priority-select{flex:none}
+.priority-badge{padding:6px 8px;font-size:10px;border-radius:20px}
+.priority-baixa{background:#eef2f6;border-color:#dce3eb;color:#64748b}
+.priority-média{background:#fff6df;border-color:#f4dfaa;color:#946200}
+.priority-alta{background:#fff0f0;border-color:#f2caca;color:#b42332}
+@media(max-width:650px){.priority-select{flex:1;min-width:100px}.priority-badge{padding:5px 6px;font-size:9px}.task{flex-wrap:wrap}.task-title{min-width:90px}}

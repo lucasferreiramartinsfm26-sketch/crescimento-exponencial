@@ -28,8 +28,8 @@ Para montar uma nova instância, execute os scripts SQL no SQL Editor do Supabas
 1. `supabase/schema.sql`
 2. `supabase/tasks_fields.sql` (compatibilidade com a tabela de tarefas existente)
 3. `supabase/platform_schema.sql`
-3. `supabase/company_registration_fields.sql`
-4. `supabase/company_notifications.sql`
+4. `supabase/company_registration_fields.sql`
+5. `supabase/company_notifications.sql`
 6. `supabase/opportunity_applications.sql`
 7. `supabase/launch_security_hardening.sql` (proteção adicional das candidaturas)
 8. `supabase/application_messages.sql`

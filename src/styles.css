@@ -237,3 +237,19 @@ footer{padding-top:36px}
 .admin-error{background:#fff0f0;color:#a52b36}
 .admin-success{background:#e9f9f1;color:#087b54}
 @media(max-width:650px){.admin-stats{grid-template-columns:1fr}.admin-record{gap:9px}.admin-status{order:2}.admin-record-main{flex-basis:100%}.admin-actions{gap:5px}.admin-actions button{flex:1;padding:9px 6px;font-size:9px}.admin-tabs button{padding:10px 11px}}
+
+
+/* Área de cadastro de empresas */
+.company-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:18px;align-items:start}
+.company-form{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.company-form label{display:grid;gap:6px;color:#526174;font:600 11px 'DM Sans',Arial,sans-serif}
+.company-form input,.company-form textarea{width:100%;min-width:0;border:1px solid #e1e8ef;border-radius:9px;background:#f9fbfc;color:#18334d;padding:11px 12px;font:12px 'DM Sans',Arial,sans-serif;outline:none}
+.company-form input:focus,.company-form textarea:focus{border-color:#18a875;box-shadow:0 0 0 3px #16ad7818}
+.company-form .company-description{grid-column:1/-1}
+.company-form textarea{resize:vertical}
+.company-form button{grid-column:1/-1;border:0;border-radius:9px;background:#0b9c6b;color:#fff;padding:12px;font:700 12px 'DM Sans',Arial,sans-serif;cursor:pointer}
+.company-form button:disabled{opacity:.6;cursor:wait}
+.company-approved-note,.company-rejected-note{width:100%;font-size:11px;line-height:1.5;padding:9px 11px;border-radius:8px;background:#e5f8ef;color:#087b54}
+.company-rejected-note{background:#fff0f0;color:#b42332}
+@media(max-width:850px){.company-layout{grid-template-columns:1fr}}
+@media(max-width:650px){.company-form{grid-template-columns:1fr}.company-form .company-description,.company-form button{grid-column:auto}.company-form-panel,.company-list-panel{padding:16px}}

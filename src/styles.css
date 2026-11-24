@@ -30,3 +30,7 @@
 .task-edit .task-cancel{background:#edf1f5;color:#526174}
 .task-edit-button{background:#eaf8f2;color:#087b54;font-size:16px;padding:5px 9px}
 @media(max-width:650px){.task-edit{flex-wrap:wrap}.task-edit input{flex-basis:100%}}
+
+/* Corrige a visibilidade do campo de edição sem alterar o checkbox */
+.task-edit input{position:static!important;opacity:1!important;width:auto;min-width:0;flex:1;background:#fff;color:#15243a;border:1px solid #dce4ed;border-radius:7px;padding:9px 10px;font:12px 'DM Sans',Arial,sans-serif}
+.task-edit input:focus{outline:2px solid #16ad78;outline-offset:1px}

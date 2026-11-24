@@ -325,3 +325,20 @@ footer{padding-top:36px}
 .application-management-filters input:focus,.application-management-filters select:focus{outline:2px solid #16ad78;outline-offset:1px}
 .application-status-actions button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:650px){.application-management-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.application-management-summary>div:last-child{grid-column:span 2}.application-management-filters{grid-template-columns:1fr}.application-management-summary strong{font-size:19px}}
+
+
+/* Caixa de entrada centralizada de mensagens */
+.message-inbox-panel{margin-top:18px}
+.message-inbox-summary{display:flex;align-items:baseline;gap:8px 10px;flex-wrap:wrap;margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#f5faf7}
+.message-inbox-summary strong{font-size:20px;color:#087b54}
+.message-inbox-summary span{font-size:11px;color:#718096;margin-right:16px}
+.message-inbox-list{display:grid;gap:12px}
+.message-inbox-item{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:15px;border:1px solid #e5edf1;border-radius:11px;background:#fff}
+.message-inbox-item.has-unread{border-color:#b9e8d2;background:#fbfefc}
+.message-inbox-copy{display:grid;gap:5px;flex:1;min-width:180px}
+.message-inbox-copy strong{font-size:13px;color:#18334d}
+.message-inbox-copy span,.message-inbox-copy small{font-size:10px;color:#8290a2}
+.message-inbox-copy p{margin:2px 0;color:#526174;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.message-inbox-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.message-inbox-item .application-chat{flex-basis:100%}
+@media(max-width:650px){.message-inbox-item{padding:12px}.message-inbox-copy{flex-basis:100%}.message-inbox-actions{width:100%;justify-content:space-between}.message-inbox-actions button{flex:1}}

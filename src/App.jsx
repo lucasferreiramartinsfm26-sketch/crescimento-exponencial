@@ -64,6 +64,7 @@ export default function App() {
   const today = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   const displayName = session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || 'Vamos começar';
   const greeting = displayName.trim().split(' ')[0];
+  const alertTasks = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= 3).sort((a, b) => a.due_date.localeCompare(b.due_date));
 
   async function handleAuth(event) {
     event.preventDefault();
@@ -148,6 +149,14 @@ export default function App() {
     }
   }
 
+  function daysUntilDue(task) {
+    if (!task.due_date) return null;
+    const [year, month, day] = task.due_date.split('-').map(Number);
+    const due = Date.UTC(year, month - 1, day);
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((due - today) / 86400000);
+  }
   function dueDateLabel(task) {
     if (!task.due_date || task.done) return '';
     const todayISO = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -228,6 +237,18 @@ export default function App() {
       <nav className="mobile-nav">{['Visão geral', 'Minhas metas'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : '◎ Minhas metas'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>
       {error && <div className="app-error" role="alert">{error}</div>}
+      {alertTasks.length > 0 && <section className="panel alerts-panel">
+        <div className="panel-heading"><div><h3>Central de alertas</h3><p>Prazos que precisam da sua atenção.</p></div><span className="count">{alertTasks.length} alertas</span></div>
+        <div className="alerts-list">{alertTasks.map(task => {
+          const days = daysUntilDue(task);
+          const label = days < 0 ? 'Atrasada há ' + Math.abs(days) + ' dia(s)' : days === 0 ? 'Vence hoje' : days === 1 ? 'Vence amanhã' : 'Vence em ' + days + ' dias';
+          return <div className={days < 0 ? "alert-item overdue" : days === 0 ? "alert-item due-today" : "alert-item"} key={task.id}>
+            <span className="alert-symbol">{days < 0 ? "!" : "◷"}</span>
+            <span className="alert-title">{task.title}<small>{task.category === "Meta" ? "Meta" : "Tarefa"} • {task.due_date.split("-").reverse().join("/")}</small></span>
+            <strong>{label}</strong>
+          </div>;
+        })}</div>
+      </section>}
       {tab === 'Visão geral' ? <>
         <div className="section-heading"><div><h2>Visão geral</h2><p>Acompanhe sua evolução de hoje.</p></div></div>
         <div className="stats">

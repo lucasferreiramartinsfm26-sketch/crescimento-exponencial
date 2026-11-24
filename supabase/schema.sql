@@ -16,3 +16,7 @@ drop policy if exists "Users can update their own tasks" on public.tasks;
 create policy "Users can update their own tasks" on public.tasks for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists "Users can delete their own tasks" on public.tasks;
 create policy "Users can delete their own tasks" on public.tasks for delete using (auth.uid() = user_id);
+
+-- Permissões para usuários autenticados; o RLS limita cada usuário aos próprios dados.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.tasks to authenticated;

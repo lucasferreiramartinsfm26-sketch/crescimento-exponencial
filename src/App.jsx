@@ -101,6 +101,19 @@ export default function App() {
   const reportGoals = tasks.filter(task => task.category === 'Meta');
   const reportActions = tasks.filter(task => task.category !== 'Meta');
   const reportPercent = tasks.length ? Math.round(reportCompleted / tasks.length * 100) : 0;
+  const goalAverage = goals.length
+    ? Math.round(goals.reduce((sum, goal) => sum + (goal.done ? 100 : (goal.progress || 0)), 0) / goals.length)
+    : 0;
+  const weeklyActivity = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (6 - index));
+    const key = toLocalISODate(date);
+    const total = tasks.filter(task => (task.created_at || '').slice(0, 10) === key).length;
+    return { key, label: new Intl.DateTimeFormat('pt-BR', { weekday: 'short' }).format(date).replace('.', ''), total };
+  }), [tasks]);
+  const weeklyMax = Math.max(1, ...weeklyActivity.map(day => day.total));
+  const currentAchievements = tasks.filter(task => task.done).sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
 
   async function enableNotifications() {
@@ -416,12 +429,12 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">↗</div><div><strong>Crescimento</strong><span>EXPONENCIAL</span></div></div>
       <div className="side-label">MENU PRINCIPAL</div>
-      <nav>{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios'].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : item === 'Calendário' ? '▣' : '▤'}</span>{item}</button>)}</nav>
+      <nav>{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios', 'Minha evolução'].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : item === 'Calendário' ? '▣' : item === 'Relatórios' ? '▤' : '↗'}</span>{item}</button>)}</nav>
       <div className="sidebar-bottom"><div className="status-dot"></div><div><b>Seu espaço de evolução</b><small>Um passo de cada vez.</small></div></div>
     </aside>
     <main className="main">
       <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><button type="button" className="logout-button" onClick={enableNotifications}>{notificationsEnabled ? "Alertas ativados ✓" : "Ativar alertas"}</button><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
-      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : item === 'Calendário' ? '▣ Calendário' : '▤ Relatórios'}</button>)}</nav>
+      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios', 'Minha evolução'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : item === 'Calendário' ? '▣ Calendário' : item === 'Relatórios' ? '▤ Relatórios' : '↗ Evolução'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>\n      <section className="backup-tools"><div><strong>Backup dos seus dados</strong><small>Salve uma cópia ou restaure itens de um arquivo anterior.</small></div><div className="backup-actions"><button type="button" className="logout-button" onClick={exportBackup} disabled={!tasks.length}>Exportar backup</button><button type="button" className="logout-button" onClick={() => backupInputRef.current?.click()}>Importar backup</button><input ref={backupInputRef} type="file" accept="application/json,.json" onChange={importBackup} hidden/></div></section>
       {error && <div className="app-error" role="alert">{error}</div>}
       {alertTasks.length > 0 && <section className="panel alerts-panel">
@@ -458,6 +471,21 @@ export default function App() {
           <section className="panel report-panel"><div className="panel-heading"><div><h3>Seu planejamento</h3><p>Distribuição atual dos seus itens.</p></div></div>
             <div className="report-breakdown"><div><span>Tarefas</span><strong>{reportActions.length}</strong></div><div><span>Metas</span><strong>{reportGoals.length}</strong></div><div><span>Concluídas</span><strong>{reportCompleted}</strong></div><div><span>Pendentes</span><strong>{reportPending}</strong></div></div>
             <p className="report-note">O gráfico usa a data de criação. O percentual mostra o estado atual dos itens; o aplicativo ainda não registra a data exata da conclusão.</p>
+          </section>
+        </div>
+      </section> : tab === 'Minha evolução' ? <section className="evolution-page">
+        <div className="section-heading"><div><h2>Minha evolução</h2><p>Veja seus avanços e mantenha o ritmo.</p></div></div>
+        <div className="stats evolution-stats">
+          <article className="stat-card"><div className="stat-icon green">✓</div><span>Conquistas atuais</span><strong>{currentAchievements.length}</strong><div className="stat-note">Tarefas e metas marcadas como concluídas</div></article>
+          <article className="stat-card"><div className="stat-icon blue">◎</div><span>Progresso médio das metas</span><strong>{goalAverage}<small>%</small></strong><div className="mini-track"><i style={{width: goalAverage + '%'}}/></div></article>
+          <article className="stat-card"><div className="stat-icon violet">↗</div><span>Itens cadastrados em 7 dias</span><strong>{weeklyActivity.reduce((sum, day) => sum + day.total, 0)}</strong><div className="stat-note">Novas tarefas e metas adicionadas</div></article>
+        </div>
+        <div className="evolution-grid">
+          <section className="panel report-panel"><div className="panel-heading"><div><h3>Atividade da semana</h3><p>Novos itens cadastrados em cada dia.</p></div></div>
+            <div className="evolution-week">{weeklyActivity.map(day => <div className="evolution-day" key={day.key}><strong>{day.total}</strong><div className="evolution-track"><i style={{height: (day.total / weeklyMax * 100) + '%'}}/></div><span>{day.label}</span></div>)}</div>
+          </section>
+          <section className="panel report-panel"><div className="panel-heading"><div><h3>Suas conquistas</h3><p>Itens que você já marcou como concluídos.</p></div><span className="count">{currentAchievements.length}</span></div>
+            {currentAchievements.length ? <div className="task-list">{currentAchievements.slice(0, 8).map(item => <div className="task done" key={item.id}><span className="task-complete-button checked" aria-hidden="true">✓</span><span className="task-title">{item.title}<small>{item.category === 'Meta' ? 'Meta' : 'Tarefa'} • Concluída</small></span></div>)}</div> : <p className="empty">Suas conquistas aparecerão aqui quando você concluir uma tarefa ou meta.</p>}
           </section>
         </div>
       </section> : tab === 'Visão geral' ? <>

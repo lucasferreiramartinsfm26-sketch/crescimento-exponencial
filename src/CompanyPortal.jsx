@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 import CompanyNotifications from './CompanyNotifications';
+import { CompanyApplications } from './Applications';
 
 const statusLabels = { pending: 'Em análise', approved: 'Aprovada', rejected: 'Rejeitada', suspended: 'Suspensa', closed: 'Encerrada' };
 
@@ -181,6 +182,7 @@ export default function CompanyPortal() {
         <span className={'admin-status status-' + item.status}>{statusLabels[item.status] || item.status}</span>
       </article>) : <p className="empty">Você ainda não enviou oportunidades.</p>}
     </section>
+    <CompanyApplications opportunities={opportunities} />
     {error && <p className="admin-error" role="alert">{error}</p>}
     {message && <p className="admin-success" role="status">{message}</p>}
   </section>;

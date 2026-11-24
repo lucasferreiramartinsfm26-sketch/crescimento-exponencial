@@ -362,3 +362,8 @@ footer{padding-top:36px}
 .profile-completion progress::-moz-progress-bar{border-radius:20px;background:#0b9c6b}
 .profile-completion p{margin:0;color:#627568;font-size:11px;line-height:1.55}
 @media(max-width:650px){.profile-completion{padding:12px}.profile-completion-heading{font-size:11px}}
+
+
+.application-empty-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:8px 0 14px}
+.application-empty-actions .empty{margin:0}
+@media(max-width:600px){.application-empty-actions{align-items:stretch;flex-direction:column}.application-empty-actions button{width:100%}}

@@ -184,3 +184,9 @@ footer{padding-top:36px}
 .backup-actions button{white-space:nowrap}
 .backup-actions button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:650px){.backup-tools{margin:-12px 0 20px;align-items:flex-start;flex-direction:column;padding:13px}.backup-actions{width:100%}.backup-actions button{flex:1;padding:9px 10px;font-size:10px}}
+
+.goal-progress-track{display:block;height:5px;background:#edf1f5;border-radius:9px;overflow:hidden;margin-top:7px;max-width:260px}
+.goal-progress-track i{display:block;height:100%;background:#16ad78;border-radius:9px;transition:width .2s}
+.goal-progress-input{width:92px;accent-color:#0b9c6b;cursor:pointer;flex:none}
+.goal-progress-input:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:650px){.goal-progress-input{width:100px;max-width:28%;}.goal-progress-track{max-width:100%}}

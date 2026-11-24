@@ -88,6 +88,18 @@ export default function App() {
     });
   }, [calendarMonth, tasks]);
   const selectedCalendarTasks = tasks.filter(task => task.due_date === calendarSelectedDate).sort((a, b) => Number(a.done) - Number(b.done));
+  const reportMonths = useMemo(() => Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(); date.setDate(1); date.setMonth(date.getMonth() - (5 - index));
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthTasks = tasks.filter(task => (task.created_at || '').slice(0, 7) === key);
+    return { key, label: new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(date).replace('.', ''), total: monthTasks.length };
+  }), [tasks]);
+  const reportMax = Math.max(1, ...reportMonths.map(month => month.total));
+  const reportCompleted = tasks.filter(task => task.done).length;
+  const reportPending = tasks.length - reportCompleted;
+  const reportGoals = tasks.filter(task => task.category === 'Meta');
+  const reportActions = tasks.filter(task => task.category !== 'Meta');
+  const reportPercent = tasks.length ? Math.round(reportCompleted / tasks.length * 100) : 0;
 
 
   async function enableNotifications() {
@@ -303,12 +315,12 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">↗</div><div><strong>Crescimento</strong><span>EXPONENCIAL</span></div></div>
       <div className="side-label">MENU PRINCIPAL</div>
-      <nav>{['Visão geral', 'Minhas metas', 'Calendário'].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : '▣'}</span>{item}</button>)}</nav>
+      <nav>{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios'].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : item === 'Calendário' ? '▣' : '▤'}</span>{item}</button>)}</nav>
       <div className="sidebar-bottom"><div className="status-dot"></div><div><b>Seu espaço de evolução</b><small>Um passo de cada vez.</small></div></div>
     </aside>
     <main className="main">
       <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><button type="button" className="logout-button" onClick={enableNotifications}>{notificationsEnabled ? "Alertas ativados ✓" : "Ativar alertas"}</button><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
-      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : '▣ Calendário'}</button>)}</nav>
+      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : item === 'Calendário' ? '▣ Calendário' : '▤ Relatórios'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>
       {error && <div className="app-error" role="alert">{error}</div>}
       {alertTasks.length > 0 && <section className="panel alerts-panel">
@@ -330,6 +342,22 @@ export default function App() {
         <div className="calendar-grid calendar-days">{calendarCells.map(cell => <button type="button" key={cell.iso} className={'calendar-day' + (!cell.inMonth ? ' outside' : '') + (cell.iso === calendarSelectedDate ? ' selected' : '') + (cell.iso === toLocalISODate(new Date()) ? ' today' : '')} onClick={() => setCalendarSelectedDate(cell.iso)}><span>{cell.day}</span>{cell.items.length > 0 && <i className="calendar-dot"/>}<small>{cell.items.length > 0 ? cell.items.length : ''}</small></button>)}</div>
         <div className="calendar-agenda"><div className="panel-heading"><div><h3>Compromissos do dia</h3><p>{calendarSelectedDate.split('-').reverse().join('/')}</p></div><span className="count">{selectedCalendarTasks.length} itens</span></div>
           {selectedCalendarTasks.length ? <div className="task-list">{selectedCalendarTasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}><span className="calendar-task-category">{task.category === 'Meta' ? '◎' : '▦'}</span><span className="task-title">{task.title}<small>{task.category} • {task.done ? 'Concluída' : 'Pendente'} • Prioridade {task.priority || 'Média'}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span></div>)}</div> : <p className="empty">Nenhuma tarefa ou meta com vencimento nesta data.</p>}
+        </div>
+      </section> : tab === 'Relatórios' ? <section className="reports-page">
+        <div className="section-heading"><div><h2>Relatórios de desempenho</h2><p>Acompanhe seus resultados e sua consistência.</p></div></div>
+        <div className="stats reports-stats">
+          <article className="stat-card"><div className="stat-icon green">✓</div><span>Itens concluídos</span><strong>{reportCompleted}</strong><div className="stat-note">Tarefas e metas finalizadas</div></article>
+          <article className="stat-card"><div className="stat-icon blue">◷</div><span>Em andamento</span><strong>{reportPending}</strong><div className="stat-note">Itens ainda pendentes</div></article>
+          <article className="stat-card"><div className="stat-icon violet">↗</div><span>Conclusão geral</span><strong>{reportPercent}<small>%</small></strong><div className="mini-track"><i style={{width: reportPercent + '%'}}/></div></article>
+        </div>
+        <div className="reports-grid">
+          <section className="panel report-panel"><div className="panel-heading"><div><h3>Atividade dos últimos 6 meses</h3><p>Itens criados em cada mês.</p></div></div>
+            {tasks.length ? <div className="report-bars">{reportMonths.map(month => <div className="report-bar-row" key={month.key}><span>{month.label}</span><div className="report-bar-track"><i style={{width: (month.total / reportMax * 100) + '%'}}/></div><strong>{month.total}</strong></div>)}</div> : <p className="empty">Adicione tarefas ou metas para começar a acompanhar sua atividade.</p>}
+          </section>
+          <section className="panel report-panel"><div className="panel-heading"><div><h3>Seu planejamento</h3><p>Distribuição atual dos seus itens.</p></div></div>
+            <div className="report-breakdown"><div><span>Tarefas</span><strong>{reportActions.length}</strong></div><div><span>Metas</span><strong>{reportGoals.length}</strong></div><div><span>Concluídas</span><strong>{reportCompleted}</strong></div><div><span>Pendentes</span><strong>{reportPending}</strong></div></div>
+            <p className="report-note">O gráfico usa a data de criação. O percentual mostra o estado atual dos itens; o aplicativo ainda não registra a data exata da conclusão.</p>
+          </section>
         </div>
       </section> : tab === 'Visão geral' ? <>
         <div className="section-heading"><div><h2>Visão geral</h2><p>Acompanhe sua evolução de hoje.</p></div></div>

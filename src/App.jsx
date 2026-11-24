@@ -8,6 +8,7 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [name, setName] = useState('');
   const [newTask, setNewTask] = useState('');
+  const [newGoal, setNewGoal] = useState('');
   const [tab, setTab] = useState('Visão geral');
   const [authMode, setAuthMode] = useState('login');
   const [email, setEmail] = useState('');
@@ -46,8 +47,11 @@ export default function App() {
     return () => { active = false; };
   }, [session?.user?.id]);
 
-  const completed = tasks.filter(task => task.done).length;
-  const progress = tasks.length ? Math.round(completed / tasks.length * 100) : 0;
+  const actionTasks = tasks.filter(task => task.category !== 'Meta');
+  const goals = tasks.filter(task => task.category === 'Meta');
+  const completed = actionTasks.filter(task => task.done).length;
+  const progress = actionTasks.length ? Math.round(completed / actionTasks.length * 100) : 0;
+  const completedGoals = goals.filter(goal => goal.done).length;
   const today = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   const displayName = session?.user?.user_metadata?.name || session?.user?.email?.split('@')[0] || 'Vamos começar';
   const greeting = displayName.trim().split(' ')[0];
@@ -87,6 +91,20 @@ export default function App() {
       .select('id,title,category,done,created_at').single();
     if (insertError) setError('Não foi possível salvar a tarefa. ' + insertError.message);
     else { setTasks(current => [...current, data]); setNewTask(''); }
+    setSaving(false);
+  }
+
+  async function addGoal(event) {
+    event.preventDefault();
+    const title = newGoal.trim();
+    if (!title || !session?.user) return;
+    setError('');
+    setSaving(true);
+    const { data, error: insertError } = await supabase.from('tasks')
+      .insert({ title, category: 'Meta', user_id: session.user.id })
+      .select('id,title,category,done,created_at').single();
+    if (insertError) setError('Não foi possível salvar a meta. ' + insertError.message);
+    else { setTasks(current => [...current, data]); setNewGoal(''); }
     setSaving(false);
   }
 
@@ -173,20 +191,20 @@ export default function App() {
       {tab === 'Visão geral' ? <>
         <div className="section-heading"><div><h2>Visão geral</h2><p>Acompanhe sua evolução de hoje.</p></div></div>
         <div className="stats">
-          <article className="stat-card"><div className="stat-icon green">✓</div><span>Tarefas concluídas</span><strong>{completed}<small> / {tasks.length}</small></strong><div className="mini-track"><i style={{width: progress + '%'}}/></div></article>
+          <article className="stat-card"><div className="stat-icon green">✓</div><span>Tarefas concluídas</span><strong>{completed}<small> / {actionTasks.length}</small></strong><div className="mini-track"><i style={{width: progress + '%'}}/></div></article>
           <article className="stat-card"><div className="stat-icon blue">↗</div><span>Progresso geral</span><strong>{progress}<small>%</small></strong><div className="mini-track"><i style={{width: progress + '%'}}/></div></article>
-          <article className="stat-card"><div className="stat-icon violet">◎</div><span>Foco do dia</span><strong>{tasks.length - completed}<small> pendentes</small></strong><div className="stat-note">Continue no seu ritmo.</div></article>
+          <article className="stat-card"><div className="stat-icon violet">◎</div><span>Foco do dia</span><strong>{actionTasks.length - completed}<small> pendentes</small></strong><div className="stat-note">Continue no seu ritmo.</div></article>
         </div>
-        <div className="content-grid"><section className="panel tasks-panel"><div className="panel-heading"><div><h3>Minhas tarefas</h3><p>Transforme planos em atitudes.</p></div><span className="count">{completed}/{tasks.length}</span></div>
+        <div className="content-grid"><section className="panel tasks-panel"><div className="panel-heading"><div><h3>Minhas tarefas</h3><p>Transforme planos em atitudes.</p></div><span className="count">{completed}/{actionTasks.length}</span></div>
           <form className="add-form" onSubmit={addTask}><input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Adicione uma nova tarefa..." aria-label="Nova tarefa"/><button type="submit" disabled={saving || !newTask.trim()}>{saving ? 'Salvando...' : 'Adicionar'}</button></form>
-          {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{tasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}>
+          {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{actionTasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}>
             <input type="checkbox" checked={task.done} onChange={() => toggleTask(task)} aria-label={task.done ? 'Reabrir tarefa' : 'Concluir tarefa'}/>
             <span className="checkmark"></span>
             <span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button><button type="button" onClick={() => deleteTask(task)} disabled={saving} aria-label="Excluir tarefa" title="Excluir tarefa" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button>
           </div>)}
-          {tasks.length === 0 && <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p>}</div>}
+          {actionTasks.length === 0 && <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p>}</div>}
         </section><aside className="panel progress-panel"><div className="panel-heading"><div><h3>Seu ritmo</h3><p>O progresso de hoje</p></div></div><div className="ring" style={{'--progress': progress + '%'}}><div><strong>{progress}%</strong><small>concluído</small></div></div><p className="motivation">{progress === 100 ? 'Excelente! Você concluiu tudo.' : 'A constância é mais importante que a velocidade.'}</p></aside></div>
-      </> : <section className="panel goals-panel"><div className="panel-heading"><div><h3>Minhas metas</h3><p>Organize suas ações e acompanhe cada conquista.</p></div></div><p className="goal-message">Suas metas são construídas com tarefas simples. Adicione tarefas na Visão geral e marque cada etapa quando concluir.</p><button className="primary-button" onClick={() => setTab('Visão geral')}>Voltar para visão geral</button></section>}
+      </> : <section className="panel goals-panel"><div className="panel-heading"><div><h3>Minhas metas</h3><p>Defina objetivos e acompanhe suas conquistas.</p></div><span className="count">{completedGoals}/{goals.length} concluídas</span></div><form className="add-form" onSubmit={addGoal}><input value={newGoal} onChange={e => setNewGoal(e.target.value)} placeholder="Ex.: Ler 12 livros este ano..." aria-label="Nova meta"/><button type="submit" disabled={saving || !newGoal.trim()}>{saving ? 'Salvando...' : 'Criar meta'}</button></form><p className="goal-message">Cada meta fica salva na sua conta. Marque quando concluir ou edite e exclua quando precisar.</p><div className="task-list">{goals.map(goal => <div className={goal.done ? 'task done' : 'task'} key={goal.id}><input type="checkbox" checked={goal.done} onChange={() => toggleTask(goal)} aria-label={goal.done ? 'Reabrir meta' : 'Concluir meta'}/><span className="checkmark"></span><span className="task-title">{goal.title}<small>Meta pessoal</small></span><span className="task-state">{goal.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(goal)} aria-label="Editar meta">✎</button><button type="button" onClick={() => deleteTask(goal)} disabled={saving} aria-label="Excluir meta" title="Excluir meta" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button></div>)}{goals.length === 0 && <p className="empty">Você ainda não criou metas. Comece adicionando sua primeira meta acima.</p>}</div></section>}
       <footer>© {new Date().getFullYear()} Crescimento Exponencial <span>•</span> Evolua um dia de cada vez. Seus dados ficam vinculados à sua conta.</footer>
     </main>
   </div>;

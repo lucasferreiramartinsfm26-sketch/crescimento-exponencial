@@ -155,7 +155,16 @@ export default function Opportunities() {
           </div>
           <div className="opportunity-card-actions"><button type="button" className="opportunity-details-button" onClick={() => setSelected(item)}>Ver detalhes</button><button type="button" className={favoriteIds.includes(item.id) ? 'favorite-button saved' : 'favorite-button'} onClick={() => toggleFavorite(item)} disabled={favoriteBusy === item.id}>{favoriteBusy === item.id ? '...' : favoriteIds.includes(item.id) ? '★ Favorita' : '☆ Favoritar'}</button></div>
         </article>)}
-      </div> : <div className="panel"><p className="empty">{items.length ? 'Nenhuma oportunidade corresponde à sua busca.' : 'Ainda não há oportunidades aprovadas disponíveis. Volte em breve!'}</p></div>}
+      </div> : <div className="panel opportunity-empty-state">
+        <p className="empty">{items.length
+          ? favoritesOnly && !favoriteIds.length
+            ? 'Você ainda não salvou oportunidades favoritas.'
+            : favoritesOnly && !items.some(item => favoriteIds.includes(item.id))
+              ? 'Nenhuma das suas oportunidades favoritas está disponível no momento.'
+              : 'Nenhuma oportunidade corresponde aos filtros selecionados.'
+          : 'Ainda não há oportunidades aprovadas disponíveis. Volte em breve!'}</p>
+        {(search || category !== 'Todas' || favoritesOnly) && <button type="button" className="logout-button" onClick={() => { setSearch(''); setCategory('Todas'); setFavoritesOnly(false); }}>Limpar filtros</button>}
+      </div>}
     {selected && <div className="opportunity-detail-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) setSelected(null); }}>
       <section className="panel opportunity-detail" role="dialog" aria-modal="true" aria-labelledby="opportunity-detail-title">
         <div className="opportunity-detail-heading"><div><span className="opportunity-category-tag">{categoryOf(selected)}</span><h2 id="opportunity-detail-title">{selected.title}</h2><p>{selected.company_profiles?.name || 'Empresa parceira'}</p></div><button type="button" className="logout-button" onClick={() => setSelected(null)}>Fechar</button></div>

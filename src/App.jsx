@@ -331,18 +331,42 @@ export default function App() {
           user_id: session.user.id
         };
       });
-      if (!window.confirm('Importar ' + rows.length + ' itens? Eles serão adicionados à sua conta sem apagar os itens atuais.')) return;
       if (!rows.length) {
         setAuthMessage('O backup está vazio. Nenhum item foi importado.');
         return;
       }
+      const makeKey = item => [
+        item.title.trim().toLocaleLowerCase('pt-BR'),
+        item.category,
+        item.due_date || ''
+      ].join('|');
+      const knownKeys = new Set(tasks.map(makeKey));
+      const uniqueRows = [];
+      let duplicates = 0;
+      rows.forEach(item => {
+        const key = makeKey(item);
+        if (knownKeys.has(key)) duplicates += 1;
+        else {
+          knownKeys.add(key);
+          uniqueRows.push(item);
+        }
+      });
+      if (!uniqueRows.length) {
+        setAuthMessage('Nenhum item novo encontrado. ' + duplicates + ' duplicado(s) foram ignorados.');
+        return;
+      }
+      const confirmText = 'Importar ' + uniqueRows.length + ' item(ns) novo(s)?' +
+        (duplicates ? ' ' + duplicates + ' duplicado(s) serão ignorados.' : '') +
+        ' Seus itens atuais não serão apagados.';
+      if (!window.confirm(confirmText)) return;
       setSaving(true);
       setError('');
       const { data, error: importError } = await supabase.from('tasks')
-        .insert(rows).select('id,title,category,done,priority,due_date,created_at');
+        .insert(uniqueRows).select('id,title,category,done,priority,due_date,created_at');
       if (importError) throw importError;
       setTasks(current => [...current, ...(data || [])]);
-      setAuthMessage(rows.length + ' itens importados com sucesso.');
+      setAuthMessage((data || []).length + ' item(ns) importado(s).' +
+        (duplicates ? ' ' + duplicates + ' duplicado(s) ignorado(s).' : ''));
     } catch (err) {
       setError('Não foi possível importar o backup. ' + (err.message || 'Verifique o arquivo.'));
     } finally {

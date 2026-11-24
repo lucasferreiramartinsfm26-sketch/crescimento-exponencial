@@ -45,7 +45,8 @@ export default function AdminPanel() {
     setBusyId(id);
     setError('');
     setMessage('');
-    const { error: updateError } = await supabase.from(table).update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+    const patch = table === 'opportunity_reports' ? { status } : { status, updated_at: new Date().toISOString() };
+    const { error: updateError } = await supabase.from(table).update(patch).eq('id', id);
     if (updateError) setError('Não foi possível atualizar: ' + updateError.message);
     else {
       setter(rows.map(row => row.id === id ? { ...row, status } : row));

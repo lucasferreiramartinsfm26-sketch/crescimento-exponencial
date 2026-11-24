@@ -101,8 +101,16 @@ export default function CompanyPortal() {
     setError('');
     setMessage('');
     setSaving(true);
+    const selectedCompanyId = approvedCompanies.some(company => company.id === opportunityForm.company_id)
+      ? opportunityForm.company_id
+      : approvedCompanies[0]?.id;
+    if (!selectedCompanyId) {
+      setError('Selecione uma empresa aprovada antes de publicar.');
+      setSaving(false);
+      return;
+    }
     const payload = {
-      company_id: opportunityForm.company_id,
+      company_id: selectedCompanyId,
       title: opportunityForm.title.trim(),
       description: opportunityForm.description.trim(),
       requirements: opportunityForm.requirements.trim(),
@@ -115,7 +123,7 @@ export default function CompanyPortal() {
     const { error: insertError } = await supabase.from('opportunities').insert(payload);
     if (insertError) setError('Não foi possível enviar a oportunidade. ' + insertError.message);
     else {
-      setOpportunityForm({ ...emptyOpportunity, company_id: opportunityForm.company_id });
+      setOpportunityForm({ ...emptyOpportunity, company_id: selectedCompanyId });
       setMessage('Oportunidade enviada para aprovação!');
       await loadCompanies();
     }
@@ -152,7 +160,7 @@ export default function CompanyPortal() {
     <section className="panel company-form-panel" style={{ marginTop: 18 }}>
       <div className="panel-heading"><div><h3>Publicar oportunidade</h3><p>Somente empresas aprovadas podem enviar oportunidades. Todas passam por análise.</p></div></div>
       {loading ? <p className="empty">Carregando empresas...</p> : approvedCompanies.length ? <form className="company-form" onSubmit={submitOpportunity}>
-        <label>Empresa<select name="company_id" value={opportunityForm.company_id || approvedCompanies[0].id} onChange={updateOpportunityField} required>{approvedCompanies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
+        <label>Empresa<select name="company_id" value={approvedCompanies.some(company => company.id === opportunityForm.company_id) ? opportunityForm.company_id : approvedCompanies[0].id} onChange={updateOpportunityField} required>{approvedCompanies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
         <label>Título da oportunidade<input name="title" value={opportunityForm.title} onChange={updateOpportunityField} minLength="3" maxLength="180" placeholder="Ex.: Assistente administrativo" required /></label>
         <label>Descrição<textarea name="description" value={opportunityForm.description} onChange={updateOpportunityField} rows="4" placeholder="Descreva as atividades e responsabilidades." required /></label>
         <label>Requisitos<textarea name="requirements" value={opportunityForm.requirements} onChange={updateOpportunityField} rows="3" placeholder="Informe os requisitos necessários." /></label>

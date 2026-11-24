@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase';
 import AdminPanel from './AdminPanel';
 import CompanyPortal from './CompanyPortal';
 import Opportunities from './Opportunities';
+import MessageInbox from './MessageInbox';
 
 function toLocalISODate(date) {
   const year = date.getFullYear();
@@ -476,12 +477,12 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">↗</div><div><strong>Crescimento</strong><span>EXPONENCIAL</span></div></div>
       <div className="side-label">MENU PRINCIPAL</div>
-      <nav>{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios', 'Minha evolução', 'Oportunidades', 'Área da empresa', ...(isPlatformAdmin ? ['Administração'] : [])].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : item === 'Calendário' ? '▣' : item === 'Relatórios' ? '▤' : item === 'Administração' ? '⚙' : item === 'Área da empresa' ? '▣' : item === 'Oportunidades' ? '⌕' : '↗'}</span>{item}</button>)}</nav>
+      <nav>{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios', 'Minha evolução', 'Oportunidades', 'Mensagens', 'Área da empresa', ...(isPlatformAdmin ? ['Administração'] : [])].map(item => <button key={item} className={tab === item ? 'nav-item active' : 'nav-item'} onClick={() => setTab(item)}><span>{item === 'Visão geral' ? '▦' : item === 'Minhas metas' ? '◎' : item === 'Calendário' ? '▣' : item === 'Relatórios' ? '▤' : item === 'Administração' ? '⚙' : item === 'Área da empresa' ? '▣' : item === 'Oportunidades' ? '⌕' : item === 'Mensagens' ? '✉' : '↗'}</span>{item}</button>)}</nav>
       <div className="sidebar-bottom"><div className="status-dot"></div><div><b>Seu espaço de evolução</b><small>Um passo de cada vez.</small></div></div>
     </aside>
     <main className="main">
       <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><button type="button" className="logout-button" onClick={enableNotifications}>{notificationsEnabled ? "Alertas ativados ✓" : "Ativar alertas"}</button><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
-      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios', 'Minha evolução', 'Oportunidades', 'Área da empresa', ...(isPlatformAdmin ? ['Administração'] : [])].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : item === 'Calendário' ? '▣ Calendário' : item === 'Relatórios' ? '▤ Relatórios' : item === 'Administração' ? '⚙ Admin' : item === 'Área da empresa' ? '▣ Empresa' : item === 'Oportunidades' ? '⌕ Oportunidades' : '↗ Evolução'}</button>)}</nav>
+      <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário', 'Relatórios', 'Minha evolução', 'Oportunidades', 'Área da empresa', ...(isPlatformAdmin ? ['Administração'] : [])].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : item === 'Calendário' ? '▣ Calendário' : item === 'Relatórios' ? '▤ Relatórios' : item === 'Administração' ? '⚙ Admin' : item === 'Área da empresa' ? '▣ Empresa' : item === 'Oportunidades' ? '⌕ Oportunidades' : item === 'Mensagens' ? '✉ Mensagens' : '↗ Evolução'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>\n      <section className="backup-tools"><div><strong>Backup dos seus dados</strong><small>Salve uma cópia ou restaure itens de um arquivo anterior.</small></div><div className="backup-actions"><button type="button" className="logout-button" onClick={exportBackup} disabled={!tasks.length}>Exportar backup</button><button type="button" className="logout-button" onClick={() => backupInputRef.current?.click()}>Importar backup</button><input ref={backupInputRef} type="file" accept="application/json,.json" onChange={importBackup} hidden/></div></section>
       {error && <div className="app-error" role="alert">{error}</div>}
       {alertTasks.length > 0 && <section className="panel alerts-panel">
@@ -496,7 +497,7 @@ export default function App() {
           </div>;
         })}</div>
       </section>}
-      {tab === 'Área da empresa' ? <CompanyPortal /> : tab === 'Oportunidades' ? <Opportunities /> : tab === 'Administração' && isPlatformAdmin ? <AdminPanel /> : tab === 'Calendário' ? <section className="panel calendar-panel">
+      {tab === 'Área da empresa' ? <CompanyPortal /> : tab === 'Oportunidades' ? <Opportunities /> : tab === 'Mensagens' ? <MessageInbox /> : tab === 'Administração' && isPlatformAdmin ? <AdminPanel /> : tab === 'Calendário' ? <section className="panel calendar-panel">
         <div className="panel-heading"><div><h3>Calendário</h3><p>Visualize os prazos das suas tarefas e metas.</p></div><span className="count">{tasks.filter(task => task.due_date).length} com prazo</span></div>
         <div className="calendar-toolbar"><button type="button" onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))} aria-label="Mês anterior">‹</button><strong>{calendarMonthLabel}</strong><button type="button" onClick={() => setCalendarMonth(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))} aria-label="Próximo mês">›</button><button type="button" className="calendar-today" onClick={() => { const now = new Date(); setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1)); setCalendarSelectedDate(toLocalISODate(now)); }}>Hoje</button></div>
         <div className="calendar-grid calendar-weekdays">{['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => <span key={day}>{day}</span>)}</div>

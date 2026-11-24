@@ -22,3 +22,11 @@
 .auth-footer{margin:20px 0 0;color:#9aa5b4;font-size:10px}
 .auth-page .auth-card>p:first-of-type{margin-top:0}
 @media(max-width:480px){.auth-card{padding:28px 22px}.auth-card h1{font-size:22px}}
+
+.task{cursor:default}
+.task-edit{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.task-edit input{min-width:0;flex:1;border:1px solid #dce4ed;border-radius:7px;padding:8px;font:12px inherit}
+.task-edit button,.task-edit-button{border:0;border-radius:7px;background:#0b9c6b;color:white;padding:7px 9px;font:600 10px inherit;cursor:pointer}
+.task-edit .task-cancel{background:#edf1f5;color:#526174}
+.task-edit-button{background:#eaf8f2;color:#087b54;font-size:16px;padding:5px 9px}
+@media(max-width:650px){.task-edit{flex-wrap:wrap}.task-edit input{flex-basis:100%}}

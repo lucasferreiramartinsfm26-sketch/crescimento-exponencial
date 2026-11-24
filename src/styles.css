@@ -68,3 +68,50 @@ button:focus-visible,input:focus-visible{outline:3px solid #38c995;outline-offse
   .welcome{box-shadow:0 8px 20px #0b254514}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+
+/* Nova identidade visual: dashboard premium */
+:root{background:#f0f4f8;color:#142b43}
+body{background:#f0f4f8}
+.sidebar{background:linear-gradient(180deg,#07182e 0%,#102e4c 100%);box-shadow:8px 0 30px #07182e12}
+.brand-mark{background:linear-gradient(135deg,#43e0a2,#13a875);box-shadow:0 7px 18px #19b77a35}
+.nav-item{font-size:13px;min-height:46px}
+.nav-item.active{background:linear-gradient(100deg,#174a6a,#12365a);box-shadow:inset 3px 0 #42dda1}
+.main{padding-bottom:24px}
+.topbar{height:82px}
+.welcome{min-height:190px;margin-top:32px;background:linear-gradient(115deg,#09213e 0%,#104a68 65%,#087d69 130%);border:1px solid #ffffff14;box-shadow:0 18px 36px #0b25451f}
+.welcome h1{font-size:34px}
+.welcome-symbol{font-size:118px;color:#62e6b4;text-shadow:0 8px 35px #40d9a255}
+.eyebrow{color:#8cf0c7}
+.section-heading{display:flex;align-items:center;justify-content:space-between}
+.section-heading h2{font-size:22px;letter-spacing:-.5px}
+.stat-card{padding:23px;border-radius:18px;box-shadow:0 8px 24px #193b5a0a}
+.stat-icon{width:40px;height:40px;border-radius:13px}
+.stat-card>strong{font-size:31px}
+.panel{border-radius:18px;box-shadow:0 8px 26px #193b5a0b;padding:25px}
+.panel-heading h3{font-size:16px}
+.add-form input{background:#f8fafc;border-color:#e5ebf1;padding:13px 14px;font-size:13px}
+.add-form button,.primary-button{background:linear-gradient(135deg,#12a875,#07845e);padding:0 19px;font-size:12px;box-shadow:0 5px 12px #0b9c6b20}
+.task{min-height:68px;padding:8px 7px;border-radius:10px}
+.task:hover{background:#f2faf6}
+.task-title{font-size:13px}
+.task-state{background:#eef8f3;color:#13835d;padding:5px 8px;border-radius:20px}
+.task.done .task-state{background:#e8f0f8;color:#708197}
+.task-edit-button{width:32px;height:32px}
+.ring{filter:drop-shadow(0 7px 10px #16b77b18)}
+.progress-panel{background:linear-gradient(180deg,#fff,#fbfefd)}
+footer{padding-top:36px}
+.auth-page{background:radial-gradient(ellipse at 15% 15%,#d5f6e8 0,transparent 38%),radial-gradient(ellipse at 85% 85%,#dceafa 0,transparent 38%),#f3f7fb}
+.auth-card{border-radius:24px;box-shadow:0 24px 70px #10294320}
+.auth-mark{box-shadow:0 8px 22px #19b77a38}
+@media(max-width:950px){.welcome{min-height:165px}.welcome h1{font-size:29px}}
+@media(max-width:650px){
+ .topbar{height:66px}
+ .welcome{min-height:150px;margin:20px 0 25px;border-radius:16px;padding:22px 18px}
+ .welcome h1{font-size:25px}
+ .welcome-symbol{font-size:72px}
+ .stat-card{border-radius:14px;padding:15px}
+ .panel{border-radius:15px;padding:17px}
+ .task{min-height:62px}
+ .task-title{font-size:12px}
+}

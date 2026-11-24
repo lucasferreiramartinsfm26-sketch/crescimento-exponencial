@@ -10,6 +10,8 @@ export default function MessageInbox() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openId, setOpenId] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   const load = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -102,6 +104,11 @@ export default function MessageInbox() {
   }, [load]);
 
   const totalUnread = items.reduce((sum, item) => sum + item.unread, 0);
+  const normalizedSearch = searchTerm.trim().toLocaleLowerCase('pt-BR');
+  const filteredItems = items.filter(item => {
+    const matchesSearch = !normalizedSearch || [item.counterpart, item.title, item.latest?.body || ''].some(value => value.toLocaleLowerCase('pt-BR').includes(normalizedSearch));
+    return matchesSearch && (!unreadOnly || item.unread > 0);
+  });
 
   return <section className="panel message-inbox-panel">
     <div className="panel-heading">
@@ -112,9 +119,13 @@ export default function MessageInbox() {
       <strong>{items.length}</strong><span>Conversas</span>
       <strong>{totalUnread}</strong><span>Mensagens não lidas</span>
     </div>
+    <div className="message-inbox-filters">
+      <label>Buscar conversa<input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Nome, oportunidade ou mensagem" /></label>
+      <label className="message-inbox-unread-filter"><input type="checkbox" checked={unreadOnly} onChange={event => setUnreadOnly(event.target.checked)} /> Somente não lidas</label>
+    </div>
     {error && <p className="admin-error" role="alert">{error}</p>}
-    {loading && !items.length ? <p className="empty">Carregando caixa de entrada...</p> : items.length ? <div className="message-inbox-list">
-      {items.map(item => <article className={'message-inbox-item' + (item.unread ? ' has-unread' : '')} key={item.id}>
+    {loading && !items.length ? <p className="empty">Carregando caixa de entrada...</p> : filteredItems.length ? <div className="message-inbox-list">
+      {filteredItems.map(item => <article className={'message-inbox-item' + (item.unread ? ' has-unread' : '')} key={item.id}>
         <div className="message-inbox-copy">
           <strong>{item.counterpart}</strong>
           <span>{item.title} • {statusLabels[item.status] || item.status}</span>
@@ -127,6 +138,6 @@ export default function MessageInbox() {
         </div>
         {openId === item.id && <ApplicationMessages applicationId={item.id} />}
       </article>)}
-    </div> : <p className="empty">Suas conversas aparecerão aqui quando houver candidaturas.</p>}
+    </div> : items.length ? <div className="application-empty-actions"><p className="empty">Nenhuma conversa corresponde aos filtros selecionados.</p><button type="button" className="logout-button" onClick={() => { setSearchTerm(''); setUnreadOnly(false); }}>Limpar filtros</button></div> : <p className="empty">Suas conversas aparecerão aqui quando houver candidaturas.</p>}
   </section>;
 }

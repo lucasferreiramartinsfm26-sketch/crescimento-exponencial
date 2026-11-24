@@ -76,6 +76,9 @@ export default function AdminPanel() {
   const pendingOpportunities = opportunities.filter(item => item.status === 'pending').length;
   const openReports = reports.filter(item => item.status === 'open' || item.status === 'reviewing').length;
   const pendingApplications = applications.filter(item => item.status === 'pending').length;
+  const reviewingApplications = applications.filter(item => item.status === 'reviewing').length;
+  const approvedApplications = applications.filter(item => item.status === 'approved').length;
+  const rejectedApplications = applications.filter(item => item.status === 'rejected').length;
 
   return <section className="admin-page">
     <div className="section-heading"><div><h2>Painel administrativo</h2><p>Gerencie empresas, oportunidades e denúncias da plataforma.</p></div><button className="logout-button" onClick={loadData} disabled={loading}>Atualizar dados</button></div>
@@ -85,6 +88,9 @@ export default function AdminPanel() {
       <article className="stat-card"><div className="stat-icon violet">⚑</div><span>Denúncias abertas</span><strong>{openReports}</strong></article>
       <article className="stat-card"><div className="stat-icon blue">☷</div><span>Total de candidaturas</span><strong>{applications.length}</strong></article>
       <article className="stat-card"><div className="stat-icon green">✓</div><span>Candidaturas novas</span><strong>{pendingApplications}</strong></article>
+      <article className="stat-card"><div className="stat-icon blue">◷</div><span>Candidaturas em análise</span><strong>{reviewingApplications}</strong></article>
+      <article className="stat-card"><div className="stat-icon green">✓</div><span>Candidaturas aprovadas</span><strong>{approvedApplications}</strong></article>
+      <article className="stat-card"><div className="stat-icon violet">×</div><span>Não selecionadas</span><strong>{rejectedApplications}</strong></article>
     </div>
     <div className="admin-tabs">
       <button className={section === 'empresas' ? 'active' : ''} onClick={() => setSection('empresas')}>Empresas ({companies.length})</button>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
+import CompanyNotifications from './CompanyNotifications';
 
 const statusLabels = { pending: 'Em análise', approved: 'Aprovada', rejected: 'Rejeitada', suspended: 'Suspensa', closed: 'Encerrada' };
 
@@ -131,6 +132,7 @@ export default function CompanyPortal() {
   }
 
   return <section className="company-page">
+    <CompanyNotifications />
     <div className="section-heading"><div><h2>Área da empresa</h2><p>Cadastre sua empresa e acompanhe suas oportunidades.</p></div></div>
     <div className="company-layout">
       <section className="panel company-form-panel">

@@ -421,7 +421,7 @@ export default function App() {
           throw new Error('O backup contém uma tarefa sem título válido.');
         }
         const dueDate = item.due_date || null;
-        if (dueDate && !/^\\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) {
+        if (dueDate && !/^\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) {
           throw new Error('O backup contém uma data inválida.');
         }
         return {

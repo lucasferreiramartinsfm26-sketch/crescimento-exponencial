@@ -8,7 +8,7 @@ export default function ApplicationMessages({ applicationId }) {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const [expanded, setExpanded] = useState(false);
+  const expanded = true;
   const [unread, setUnread] = useState(0);
 
   const loadUnread = useCallback(async currentUserId => {
@@ -62,15 +62,8 @@ export default function ApplicationMessages({ applicationId }) {
   }, [applicationId, loadUnread]);
 
   useEffect(() => {
-    let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!active) return;
-      const id = data?.user?.id || '';
-      setUserId(id);
-      if (id) loadUnread(id);
-    });
-    return () => { active = false; };
-  }, [loadUnread]);
+    load(true);
+  }, [load]);
 
   useEffect(() => {
     if (!userId) return undefined;
@@ -95,15 +88,6 @@ export default function ApplicationMessages({ applicationId }) {
     return () => { supabase.removeChannel(channel); };
   }, [applicationId, userId, expanded, load, loadUnread]);
 
-  async function toggleConversation() {
-    if (expanded) {
-      setExpanded(false);
-      return;
-    }
-    setExpanded(true);
-    await load(true);
-  }
-
   async function send(event) {
     event.preventDefault();
     const message = body.trim();
@@ -126,10 +110,8 @@ export default function ApplicationMessages({ applicationId }) {
   return <div className="application-chat">
     <div className="application-chat-heading">
       <strong>Mensagens {unread > 0 && <span className="message-unread-badge">{unread} nova{unread === 1 ? '' : 's'}</span>}</strong>
-      <button type="button" className="logout-button" onClick={toggleConversation}>{expanded ? 'Fechar conversa' : 'Abrir conversa'}</button>
     </div>
-    {!expanded && <p className="application-chat-hint">{unread > 0 ? 'Você tem mensagens aguardando leitura.' : 'Abra para visualizar ou enviar mensagens.'}</p>}
-    {expanded && <>
+    <>
       {error && <p className="admin-error" role="alert">{error}</p>}
       <div className="application-chat-list">
         {loading ? <p className="empty">Carregando mensagens...</p> : messages.length ? messages.map(message => <article key={message.id} className={'application-chat-message' + (message.sender_id === userId ? ' mine' : '')}>
@@ -142,6 +124,6 @@ export default function ApplicationMessages({ applicationId }) {
         <textarea value={body} onChange={event => setBody(event.target.value)} rows="2" maxLength="3000" placeholder="Escreva sua mensagem..." required />
         <button type="submit" disabled={sending || !body.trim()}>{sending ? 'Enviando...' : 'Enviar mensagem'}</button>
       </form>
-    </>}
+    </>
   </div>;
 }

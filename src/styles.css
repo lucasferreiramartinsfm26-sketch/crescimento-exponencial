@@ -311,3 +311,17 @@ footer{padding-top:36px}
 .application-chat-hint{margin:0;color:#8290a2;font-size:10px;line-height:1.5}
 .application-chat-tools{display:flex;justify-content:flex-end;margin-top:8px}
 @media(max-width:650px){.application-chat-heading{align-items:flex-start}.application-chat-heading .logout-button{white-space:nowrap}.application-chat-tools{justify-content:stretch}.application-chat-tools button{width:100%}}
+
+
+/* Gestão de candidaturas: indicadores e filtros */
+.application-management-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 18px}
+.application-management-summary>div{padding:13px 14px;border:1px solid #e7edf3;border-radius:10px;background:#f8fafc}
+.application-management-summary strong,.application-management-summary span{display:block}
+.application-management-summary strong{font-size:22px;color:#102943}
+.application-management-summary span{margin-top:3px;font-size:10px;color:#8290a2}
+.application-management-filters{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:18px}
+.application-management-filters label{display:grid;gap:6px;font-size:11px;font-weight:700;color:#526174}
+.application-management-filters input,.application-management-filters select{width:100%;min-width:0;border:1px solid #dce4ed;border-radius:8px;background:#fff;padding:11px 12px;color:#15243a;font:12px 'DM Sans',Arial,sans-serif}
+.application-management-filters input:focus,.application-management-filters select:focus{outline:2px solid #16ad78;outline-offset:1px}
+.application-status-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:650px){.application-management-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.application-management-summary>div:last-child{grid-column:span 2}.application-management-filters{grid-template-columns:1fr}.application-management-summary strong{font-size:19px}}

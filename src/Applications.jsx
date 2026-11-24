@@ -131,7 +131,7 @@ export function MyApplications() {
       <div className="admin-record-main"><strong>{item.opportunities?.title || 'Oportunidade'}</strong><span>{item.opportunities?.company_profiles?.name || 'Empresa'}</span><small>Enviada em {new Date(item.created_at).toLocaleDateString('pt-BR')}</small></div>
       <span className={'admin-status status-' + item.status}>{labels[item.status] || item.status}</span>
       <ApplicationMessages applicationId={item.id} />
-    </article>) : items.length ? <p className="empty">Nenhuma candidatura corresponde à busca e ao filtro selecionados.</p> : <p className="empty">Você ainda não enviou candidaturas.</p>}
+    </article>) : items.length ? <div className="application-empty-actions"><p className="empty">Nenhuma candidatura corresponde à busca e ao filtro selecionados.</p><button type="button" className="logout-button" onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}>Limpar filtros</button></div> : <p className="empty">Você ainda não enviou candidaturas.</p>}
   </section>;
 }
 
@@ -216,6 +216,6 @@ export function CompanyApplications({ opportunities = [] }) {
         <button type="button" disabled={savingId === item.id || item.status === 'approved'} onClick={() => changeStatus(item, 'approved')}>Aprovar</button>
         <button type="button" className="danger" disabled={savingId === item.id || item.status === 'rejected'} onClick={() => changeStatus(item, 'rejected')}>Rejeitar</button>
       </div>
-    </article>) : items.length ? <p className="empty">Nenhuma candidatura corresponde à busca e ao filtro selecionados.</p> : <p className="empty">Ainda não há candidatos para suas oportunidades.</p>}
+    </article>) : items.length ? <div className="application-empty-actions"><p className="empty">Nenhuma candidatura corresponde à busca e ao filtro selecionados.</p><button type="button" className="logout-button" onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}>Limpar filtros</button></div> : <p className="empty">Ainda não há candidatos para suas oportunidades.</p>}
   </section>;
 }

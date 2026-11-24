@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
+import { CandidateApplicationForm, MyApplications } from './Applications';
 
 function categoryOf(item) {
   const text = [item.title, item.description, item.requirements].join(' ').toLocaleLowerCase('pt-BR');
@@ -21,6 +22,7 @@ export default function Opportunities() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todas');
   const [selected, setSelected] = useState(null);
+  const [applying, setApplying] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [reportReason, setReportReason] = useState('Informações falsas ou enganosas');
   const [reportDetails, setReportDetails] = useState('');
@@ -125,7 +127,9 @@ export default function Opportunities() {
           <span><b>Pagamento</b>{selected.payment_method || 'Não informado'}</span>
           <span><b>Prazo para candidatura</b>{dateLabel(selected.deadline)}</span>
         </div>
-        {selected.application_url ? <a className="opportunity-apply-button" href={selected.application_url} target="_blank" rel="noreferrer">Candidatar-se</a> : <p className="opportunity-no-link">Esta oportunidade ainda não possui um link de candidatura. Entre em contato com a empresa para obter instruções.</p>}
+        <button type="button" className="opportunity-apply-button" onClick={() => setApplying(true)}>Candidatar-se pelo aplicativo</button>
+        {selected.application_url && <a className="opportunity-apply-button" href={selected.application_url} target="_blank" rel="noreferrer">Abrir link externo da empresa</a>}
+        {applying && <CandidateApplicationForm opportunity={selected} onClose={() => setApplying(false)} />}
         <div style={{ marginTop: 18, borderTop: '1px solid #e8edf2', paddingTop: 14 }}>
           {reportMessage && <p className="admin-success" role="status">{reportMessage}</p>}
           {!reporting ? <button type="button" className="logout-button" onClick={() => { setReporting(true); setReportMessage(''); }}>Denunciar oportunidade</button> : <form onSubmit={submitReport} style={{ display: 'grid', gap: 10 }}>
@@ -147,5 +151,6 @@ export default function Opportunities() {
         </div>
       </section>
     </div>}
+    <MyApplications />
   </section>;
 }

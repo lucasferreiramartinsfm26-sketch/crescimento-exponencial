@@ -8,8 +8,6 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [name, setName] = useState('');
   const [newTask, setNewTask] = useState('');
-  const [editingTaskId, setEditingTaskId] = useState(null);
-  const [editingTitle, setEditingTitle] = useState('');
   const [tab, setTab] = useState('Visão geral');
   const [authMode, setAuthMode] = useState('login');
   const [email, setEmail] = useState('');
@@ -93,13 +91,13 @@ export default function App() {
   }
 
   function startEditing(task) {
-    setEditingTaskId(task.id);
-    setEditingTitle(task.title);
-    setError('');
+    const updatedTitle = window.prompt('Editar tarefa:', task.title);
+    if (updatedTitle === null) return;
+    saveTaskEdit(task, updatedTitle);
   }
 
-  async function saveTaskEdit(task) {
-    const title = editingTitle.trim();
+  async function saveTaskEdit(task, updatedTitle) {
+    const title = updatedTitle.trim();
     if (!title) { setError('Digite um nome para a tarefa.'); return; }
     setSaving(true);
     setError('');
@@ -109,8 +107,6 @@ export default function App() {
     if (editError) setError('Não foi possível editar a tarefa. ' + editError.message);
     else {
       setTasks(current => current.map(item => item.id === task.id ? data : item));
-      setEditingTaskId(null);
-      setEditingTitle('');
     }
     setSaving(false);
   }
@@ -175,7 +171,7 @@ export default function App() {
           {tasksLoading ? <p className="empty">Carregando suas tarefas...</p> : <div className="task-list">{tasks.map(task => <div className={task.done ? 'task done' : 'task'} key={task.id}>
             <input type="checkbox" checked={task.done} onChange={() => toggleTask(task)} aria-label={task.done ? 'Reabrir tarefa' : 'Concluir tarefa'}/>
             <span className="checkmark"></span>
-            {editingTaskId === task.id ? <div className="task-edit"><input value={editingTitle} onChange={e => setEditingTitle(e.target.value)} aria-label="Editar tarefa" onKeyDown={e => { if (e.key === 'Enter') saveTaskEdit(task); if (e.key === 'Escape') setEditingTaskId(null); }}/><button type="button" onClick={() => saveTaskEdit(task)} disabled={saving}>Salvar</button><button type="button" className="task-cancel" onClick={() => setEditingTaskId(null)}>Cancelar</button></div> : <><span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button></>}
+            <span className="task-title">{task.title}<small>{task.category}</small></span><span className="task-state">{task.done ? 'Concluída' : 'Em andamento'}</span><button type="button" className="task-edit-button" onClick={() => startEditing(task)} aria-label="Editar tarefa">✎</button>
           </div>)}
           {tasks.length === 0 && <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p>}</div>}
         </section><aside className="panel progress-panel"><div className="panel-heading"><div><h3>Seu ritmo</h3><p>O progresso de hoje</p></div></div><div className="ring" style={{'--progress': progress + '%'}}><div><strong>{progress}%</strong><small>concluído</small></div></div><p className="motivation">{progress === 100 ? 'Excelente! Você concluiu tudo.' : 'A constância é mais importante que a velocidade.'}</p></aside></div>

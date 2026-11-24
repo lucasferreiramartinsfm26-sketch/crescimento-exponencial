@@ -5,6 +5,10 @@ create table if not exists public.tasks (
   title text not null,
   category text not null default 'Pessoal',
   done boolean not null default false,
+  priority text not null default 'Média',
+  due_date date,
+  progress integer not null default 0,
+  reminder_days integer not null default 3,
   created_at timestamptz not null default now()
 );
 alter table public.tasks enable row level security;

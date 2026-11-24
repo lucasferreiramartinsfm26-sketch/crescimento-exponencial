@@ -21,6 +21,11 @@ export default function Opportunities() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todas');
   const [selected, setSelected] = useState(null);
+  const [reporting, setReporting] = useState(false);
+  const [reportReason, setReportReason] = useState('Informações falsas ou enganosas');
+  const [reportDetails, setReportDetails] = useState('');
+  const [sendingReport, setSendingReport] = useState(false);
+  const [reportMessage, setReportMessage] = useState('');
 
   async function loadOpportunities() {
     setLoading(true);
@@ -41,6 +46,34 @@ export default function Opportunities() {
   }
 
   useEffect(() => { loadOpportunities(); }, []);
+
+  async function submitReport(event) {
+    event.preventDefault();
+    if (!selected) return;
+    setSendingReport(true);
+    setError('');
+    setReportMessage('');
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      setError('Entre novamente na sua conta para enviar uma denúncia.');
+      setSendingReport(false);
+      return;
+    }
+    const { error: insertError } = await supabase.from('opportunity_reports').insert({
+      reporter_id: authData.user.id,
+      opportunity_id: selected.id,
+      reason: reportReason,
+      details: reportDetails.trim(),
+      status: 'open'
+    });
+    if (insertError) setError('Não foi possível enviar a denúncia. ' + insertError.message);
+    else {
+      setReportMessage('Denúncia enviada. Nossa equipe irá analisar.');
+      setReporting(false);
+      setReportDetails('');
+    }
+    setSendingReport(false);
+  }
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('pt-BR');
@@ -93,6 +126,25 @@ export default function Opportunities() {
           <span><b>Prazo para candidatura</b>{dateLabel(selected.deadline)}</span>
         </div>
         {selected.application_url ? <a className="opportunity-apply-button" href={selected.application_url} target="_blank" rel="noreferrer">Candidatar-se</a> : <p className="opportunity-no-link">Esta oportunidade ainda não possui um link de candidatura. Entre em contato com a empresa para obter instruções.</p>}
+        <div style={{ marginTop: 18, borderTop: '1px solid #e8edf2', paddingTop: 14 }}>
+          {reportMessage && <p className="admin-success" role="status">{reportMessage}</p>}
+          {!reporting ? <button type="button" className="logout-button" onClick={() => { setReporting(true); setReportMessage(''); }}>Denunciar oportunidade</button> : <form onSubmit={submitReport} style={{ display: 'grid', gap: 10 }}>
+            <h3>Denunciar oportunidade</h3>
+            <label style={{ display: 'grid', gap: 6 }}>Motivo
+              <select value={reportReason} onChange={event => setReportReason(event.target.value)} required>
+                {['Informações falsas ou enganosas', 'Suspeita de golpe ou fraude', 'Cobrança indevida', 'Conteúdo inadequado', 'Outro motivo'].map(reason => <option key={reason}>{reason}</option>)}
+              </select>
+            </label>
+            <label style={{ display: 'grid', gap: 6 }}>Detalhes (opcional)
+              <textarea value={reportDetails} onChange={event => setReportDetails(event.target.value)} rows="3" maxLength="1000" placeholder="Explique o que aconteceu." />
+            </label>
+            {error && <p className="admin-error" role="alert">{error}</p>}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button type="submit" disabled={sendingReport}>{sendingReport ? 'Enviando...' : 'Enviar denúncia'}</button>
+              <button type="button" className="logout-button" onClick={() => setReporting(false)} disabled={sendingReport}>Cancelar</button>
+            </div>
+          </form>}
+        </div>
       </section>
     </div>}
   </section>;

@@ -27,8 +27,8 @@ export default function AdminPanel() {
     setLoading(true);
     setError('');
     const [companyResult, opportunityResult, reportResult] = await Promise.all([
-      supabase.from('company_profiles').select('id,name,cnpj,email,phone,website,description,status,created_at').order('created_at', { ascending: false }),
-      supabase.from('opportunities').select('id,title,description,compensation,deadline,status,created_at,company_profiles(name)').order('created_at', { ascending: false }),
+      supabase.from('company_profiles').select('id,owner_id,name,cnpj,email,phone,website,description,status,created_at').order('created_at', { ascending: false }),
+      supabase.from('opportunities').select('id,title,description,compensation,deadline,status,created_at,company_profiles(name,owner_id)').order('created_at', { ascending: false }),
       supabase.from('opportunity_reports').select('id,reason,details,status,created_at,opportunity_id').order('created_at', { ascending: false })
     ]);
     const firstError = companyResult.error || opportunityResult.error || reportResult.error;
@@ -41,7 +41,7 @@ export default function AdminPanel() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  async function changeStatus(table, id, status, setter, rows) {
+  async function changeStatus(table, id, status, setter, rows, ownerId = null, itemTitle = 'Cadastro') {
     setBusyId(id);
     setError('');
     setMessage('');
@@ -50,7 +50,21 @@ export default function AdminPanel() {
     if (updateError) setError('Não foi possível atualizar: ' + updateError.message);
     else {
       setter(rows.map(row => row.id === id ? { ...row, status } : row));
-      setMessage('Status atualizado com sucesso.');
+      if (table !== 'opportunity_reports' && ownerId) {
+        const itemType = table === 'company_profiles' ? 'empresa' : 'oportunidade';
+        const statusText = status === 'approved' ? 'aprovada' : status === 'rejected' ? 'rejeitada' : 'suspensa';
+        const { error: notificationError } = await supabase.from('company_notifications').insert({
+          user_id: ownerId,
+          title: itemType === 'empresa' ? 'Atualização da empresa' : 'Atualização da oportunidade',
+          message: 'Sua ' + itemType + ' "' + itemTitle + '" foi ' + statusText + '.',
+          read: false
+        });
+        setMessage(notificationError
+          ? 'Status atualizado, mas não foi possível criar a notificação. Verifique a configuração da Central de Notificações.'
+          : 'Status atualizado e notificação enviada à empresa.');
+      } else {
+        setMessage('Status atualizado com sucesso.');
+      }
     }
     setBusyId('');
   }
@@ -87,9 +101,9 @@ export default function AdminPanel() {
           </div>
           <span className={'admin-status status-' + company.status}>{statusLabels[company.status] || company.status}</span>
           <div className="admin-actions">
-            <button disabled={busyId === company.id || company.status === 'approved'} onClick={() => changeStatus('company_profiles', company.id, 'approved', setCompanies, companies)}>Aprovar</button>
-            <button className="danger" disabled={busyId === company.id || company.status === 'rejected'} onClick={() => changeStatus('company_profiles', company.id, 'rejected', setCompanies, companies)}>Rejeitar</button>
-            <button className="muted" disabled={busyId === company.id || company.status === 'suspended'} onClick={() => changeStatus('company_profiles', company.id, 'suspended', setCompanies, companies)}>Suspender</button>
+            <button disabled={busyId === company.id || company.status === 'approved'} onClick={() => changeStatus('company_profiles', company.id, 'approved', setCompanies, companies, company.owner_id, company.name)}>Aprovar</button>
+            <button className="danger" disabled={busyId === company.id || company.status === 'rejected'} onClick={() => changeStatus('company_profiles', company.id, 'rejected', setCompanies, companies, company.owner_id, company.name)}>Rejeitar</button>
+            <button className="muted" disabled={busyId === company.id || company.status === 'suspended'} onClick={() => changeStatus('company_profiles', company.id, 'suspended', setCompanies, companies, company.owner_id, company.name)}>Suspender</button>
           </div>
         </article>) : <p className="empty">Nenhuma empresa cadastrada até agora.</p>}
       </div> : section === 'oportunidades' ? <div className="panel admin-list">
@@ -98,9 +112,9 @@ export default function AdminPanel() {
           <div className="admin-record-main"><strong>{item.title}</strong><span>{item.company_profiles?.name || 'Empresa não identificada'} • {item.compensation || 'Remuneração não informada'}</span><small>{item.description}</small>{item.deadline && <small>Prazo: {new Date(item.deadline + 'T00:00:00').toLocaleDateString('pt-BR')}</small>}</div>
           <span className={'admin-status status-' + item.status}>{statusLabels[item.status] || item.status}</span>
           <div className="admin-actions">
-            <button disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'approved', setOpportunities, opportunities)}>Aprovar</button>
-            <button className="danger" disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'rejected', setOpportunities, opportunities)}>Rejeitar</button>
-            <button className="muted" disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'suspended', setOpportunities, opportunities)}>Suspender</button>
+            <button disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'approved', setOpportunities, opportunities, item.company_profiles?.owner_id, item.title)}>Aprovar</button>
+            <button className="danger" disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'rejected', setOpportunities, opportunities, item.company_profiles?.owner_id, item.title)}>Rejeitar</button>
+            <button className="muted" disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'suspended', setOpportunities, opportunities, item.company_profiles?.owner_id, item.title)}>Suspender</button>
           </div>
         </article>) : <p className="empty">Nenhuma oportunidade cadastrada.</p>}
       </div> : <div className="panel admin-list">

@@ -31,6 +31,7 @@ export default function App() {
   const [authMessage, setAuthMessage] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => typeof Notification !== 'undefined' && Notification.permission === 'granted');
 
   useEffect(() => {
     let active = true;
@@ -87,6 +88,57 @@ export default function App() {
     });
   }, [calendarMonth, tasks]);
   const selectedCalendarTasks = tasks.filter(task => task.due_date === calendarSelectedDate).sort((a, b) => Number(a.done) - Number(b.done));
+
+
+  async function enableNotifications() {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setError('Este navegador não oferece suporte a notificações. Atualize o Chrome e tente novamente.');
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        setError('Permissão de notificações não concedida. Você pode ativá-la nas configurações do navegador.');
+        return;
+      }
+      await navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
+      setNotificationsEnabled(true);
+      setError('');
+    } catch (err) {
+      setError('Não foi possível ativar as notificações. ' + (err.message || 'Tente novamente.'));
+    }
+  }
+
+  useEffect(() => {
+    if (!session?.user?.id || !notificationsEnabled || !tasks.length) return;
+    let active = true;
+    const checkReminders = async () => {
+      if (!active || document.visibilityState !== 'visible' || Notification.permission !== 'granted') return;
+      const pending = tasks.filter(task => !task.done && task.due_date && daysUntilDue(task) <= 3);
+      if (!pending.length) return;
+      const todayKey = toLocalISODate(new Date());
+      const storageKey = `ce-reminder-${session.user.id}-${todayKey}`;
+      if (localStorage.getItem(storageKey)) return;
+      const title = pending.length === 1 ? 'Você tem 1 prazo para acompanhar' : `Você tem ${pending.length} prazos para acompanhar`;
+      const body = pending.slice(0, 3).map(task => task.title).join(' • ');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body: body + (pending.length > 3 ? ' • e outros' : ''),
+          icon: `${import.meta.env.BASE_URL}favicon.ico`,
+          badge: `${import.meta.env.BASE_URL}favicon.ico`,
+          tag: `ce-reminders-${todayKey}`,
+          data: { url: import.meta.env.BASE_URL }
+        });
+        localStorage.setItem(storageKey, '1');
+      } catch (err) {
+        console.error('Falha ao exibir lembrete:', err);
+      }
+    };
+    checkReminders();
+    const interval = window.setInterval(checkReminders, 60 * 60 * 1000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, [session?.user?.id, tasks, notificationsEnabled]);
 
   async function handleAuth(event) {
     event.preventDefault();
@@ -255,7 +307,7 @@ export default function App() {
       <div className="sidebar-bottom"><div className="status-dot"></div><div><b>Seu espaço de evolução</b><small>Um passo de cada vez.</small></div></div>
     </aside>
     <main className="main">
-      <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
+      <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><button type="button" className="logout-button" onClick={enableNotifications}>{notificationsEnabled ? "Alertas ativados ✓" : "Ativar alertas"}</button><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
       <nav className="mobile-nav">{['Visão geral', 'Minhas metas', 'Calendário'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : item === 'Minhas metas' ? '◎ Metas' : '▣ Calendário'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>
       {error && <div className="app-error" role="alert">{error}</div>}

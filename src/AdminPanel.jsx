@@ -23,6 +23,8 @@ export default function AdminPanel() {
   const [busyId, setBusyId] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -79,6 +81,11 @@ export default function AdminPanel() {
   const reviewingApplications = applications.filter(item => item.status === 'reviewing').length;
   const approvedApplications = applications.filter(item => item.status === 'approved').length;
   const rejectedApplications = applications.filter(item => item.status === 'rejected').length;
+  const normalizedSearch = searchTerm.trim().toLocaleLowerCase('pt-BR');
+  const matchesStatus = item => statusFilter === 'all' || item.status === statusFilter;
+  const filteredCompanies = companies.filter(item => matchesStatus(item) && [item.name, item.cnpj, item.email].some(value => (value || '').toLocaleLowerCase('pt-BR').includes(normalizedSearch)));
+  const filteredOpportunities = opportunities.filter(item => matchesStatus(item) && [item.title, item.company_profiles?.name, item.description].some(value => (value || '').toLocaleLowerCase('pt-BR').includes(normalizedSearch)));
+  const filteredReports = reports.filter(item => matchesStatus(item) && [item.reason, item.details].some(value => (value || '').toLocaleLowerCase('pt-BR').includes(normalizedSearch)));
 
   return <section className="admin-page">
     <div className="section-heading"><div><h2>Painel administrativo</h2><p>Gerencie empresas, oportunidades e denúncias da plataforma.</p></div><button className="logout-button" onClick={loadData} disabled={loading}>Atualizar dados</button></div>
@@ -97,12 +104,21 @@ export default function AdminPanel() {
       <button className={section === 'oportunidades' ? 'active' : ''} onClick={() => setSection('oportunidades')}>Oportunidades ({opportunities.length})</button>
       <button className={section === 'denuncias' ? 'active' : ''} onClick={() => setSection('denuncias')}>Denúncias ({reports.length})</button>
     </div>
+    <div className="application-management-filters admin-filters">
+      <label>Buscar {section === 'empresas' ? 'empresa, CNPJ ou e-mail' : section === 'oportunidades' ? 'oportunidade ou empresa' : 'denúncia'}<input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Digite para pesquisar" /></label>
+      <label>Filtrar por situação<select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+        <option value="all">Todas as situações</option>
+        {section === 'empresas' && <><option value="pending">Pendente</option><option value="approved">Aprovada</option><option value="rejected">Rejeitada</option><option value="suspended">Suspensa</option></>}
+        {section === 'oportunidades' && <><option value="pending">Pendente</option><option value="approved">Aprovada</option><option value="rejected">Rejeitada</option><option value="suspended">Suspensa</option><option value="closed">Encerrada</option></>}
+        {section === 'denuncias' && <><option value="open">Aberta</option><option value="reviewing">Em análise</option><option value="resolved">Resolvida</option><option value="dismissed">Descartada</option></>}
+      </select></label>
+    </div>
     {error && <p className="admin-error" role="alert">{error}</p>}
     {message && <p className="admin-success" role="status">{message}</p>}
     {loading ? <div className="panel"><p className="empty">Carregando informações administrativas...</p></div> :
       section === 'empresas' ? <div className="panel admin-list">
         <div className="panel-heading"><div><h3>Cadastro de empresas</h3><p>Revise os dados e aprove empresas antes de liberar publicações.</p></div></div>
-        {companies.length ? companies.map(company => <article className="admin-record" key={company.id}>
+        {filteredCompanies.length ? filteredCompanies.map(company => <article className="admin-record" key={company.id}>
           <div className="admin-record-main">
             <strong>{company.name}</strong>
             <span>CNPJ: {company.cnpj || 'Não informado'}</span>
@@ -117,10 +133,10 @@ export default function AdminPanel() {
             <button className="danger" disabled={busyId === company.id || company.status === 'rejected'} onClick={() => changeStatus('company_profiles', company.id, 'rejected', setCompanies, companies, company.owner_id, company.name)}>Rejeitar</button>
             <button className="muted" disabled={busyId === company.id || company.status === 'suspended'} onClick={() => changeStatus('company_profiles', company.id, 'suspended', setCompanies, companies, company.owner_id, company.name)}>Suspender</button>
           </div>
-        </article>) : <p className="empty">Nenhuma empresa cadastrada até agora.</p>}
+        </article>) : <p className="empty">Nenhuma empresa corresponde à busca e ao filtro selecionados.</p>}
       </div> : section === 'oportunidades' ? <div className="panel admin-list">
         <div className="panel-heading"><div><h3>Oportunidades publicadas</h3><p>Somente oportunidades aprovadas ficam visíveis aos usuários.</p></div></div>
-        {opportunities.length ? opportunities.map(item => <article className="admin-record" key={item.id}>
+        {filteredOpportunities.length ? filteredOpportunities.map(item => <article className="admin-record" key={item.id}>
           <div className="admin-record-main"><strong>{item.title}</strong><span>{item.company_profiles?.name || 'Empresa não identificada'} • {item.compensation || 'Remuneração não informada'}</span><small>{item.description}</small>{item.deadline && <small>Prazo: {new Date(item.deadline + 'T00:00:00').toLocaleDateString('pt-BR')}</small>}</div>
           <span className={'admin-status status-' + item.status}>{statusLabels[item.status] || item.status}</span>
           <div className="admin-actions">
@@ -128,10 +144,10 @@ export default function AdminPanel() {
             <button className="danger" disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'rejected', setOpportunities, opportunities, item.company_profiles?.owner_id, item.title)}>Rejeitar</button>
             <button className="muted" disabled={busyId === item.id} onClick={() => changeStatus('opportunities', item.id, 'suspended', setOpportunities, opportunities, item.company_profiles?.owner_id, item.title)}>Suspender</button>
           </div>
-        </article>) : <p className="empty">Nenhuma oportunidade cadastrada.</p>}
+        </article>) : <p className="empty">Nenhuma oportunidade corresponde à busca e ao filtro selecionados.</p>}
       </div> : <div className="panel admin-list">
         <div className="panel-heading"><div><h3>Denúncias recebidas</h3><p>Analise os relatos enviados pelos usuários.</p></div></div>
-        {reports.length ? reports.map(report => <article className="admin-record" key={report.id}>
+        {filteredReports.length ? filteredReports.map(report => <article className="admin-record" key={report.id}>
           <div className="admin-record-main"><strong>{report.reason}</strong><span>{report.details || 'Sem detalhes adicionais'}</span><small>Recebida em {new Date(report.created_at).toLocaleString('pt-BR')}</small></div>
           <span className={'admin-status status-' + report.status}>{statusLabels[report.status] || report.status}</span>
           <div className="admin-actions">
@@ -139,7 +155,7 @@ export default function AdminPanel() {
             <button disabled={busyId === report.id} onClick={() => changeStatus('opportunity_reports', report.id, 'resolved', setReports, reports)}>Resolver</button>
             <button className="muted" disabled={busyId === report.id} onClick={() => changeStatus('opportunity_reports', report.id, 'dismissed', setReports, reports)}>Descartar</button>
           </div>
-        </article>) : <p className="empty">Nenhuma denúncia recebida.</p>}
+        </article>) : <p className="empty">Nenhuma denúncia corresponde à busca e ao filtro selecionados.</p>}
       </div>}
   </section>;
 }

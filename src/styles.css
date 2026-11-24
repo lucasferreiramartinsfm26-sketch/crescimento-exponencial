@@ -145,3 +145,7 @@ footer{padding-top:36px}
 
 /* Datas de vencimento para tarefas e metas */
 .due-date-input{min-width:0;border:1px solid #e1e8ef;border-radius:8px;background:#fff;color:#526174;padding:7px 8px;font:500 10px 'DM Sans',Arial,sans-serif;max-width:145px}.due-date-input:focus{outline:2px solid #16ad78;outline-offset:1px}.item-due-date{max-width:132px}.task-title small{line-height:1.5}.task:has(.task-title small){align-items:center}@media(max-width:650px){.due-date-input{font-size:10px;padding:7px 6px;max-width:100%;flex:1}.item-due-date{max-width:120px}.task{row-gap:7px}}
+
+
+/* Central de alertas de vencimento */
+.alerts-panel{margin:0 0 20px;border-left:4px solid #e3a52f}.alerts-panel .panel-heading{margin-bottom:12px}.alerts-list{display:grid;gap:7px}.alert-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;background:#fff8e8;color:#79551a}.alert-item.overdue{background:#fff0f0;color:#a52b36}.alert-item.due-today{background:#fff6df;color:#946200}.alert-symbol{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#ffffffb8;font-weight:800}.alert-title{flex:1;min-width:0;font-size:12px;font-weight:700;overflow-wrap:anywhere}.alert-title small{display:block;margin-top:3px;font-size:10px;font-weight:400;opacity:.75}.alert-item strong{font-size:10px;text-align:right}@media(max-width:650px){.alerts-panel{margin-bottom:14px}.alert-item{gap:7px;padding:9px}.alert-title{font-size:11px}.alert-item strong{font-size:9px;max-width:105px}}

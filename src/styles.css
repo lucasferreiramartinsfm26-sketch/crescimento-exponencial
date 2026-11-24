@@ -206,3 +206,7 @@ footer{padding-top:36px}
 .evolution-track i{display:block;width:100%;min-height:0;border-radius:10px;background:linear-gradient(180deg,#56d9a8,#17a875);transition:height .25s}
 @media(max-width:950px){.evolution-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.evolution-stats{grid-template-columns:1fr}.evolution-grid{gap:12px}.evolution-week{gap:6px}.evolution-day{height:160px}.evolution-track{height:110px;width:min(100%,25px)}}
+
+
+/* Ordenação de tarefas e metas */
+.sort-control{display:flex;align-items:center;gap:9px;margin:0 0 14px;color:#718096;font:600 11px 'DM Sans',Arial,sans-serif}.sort-select{border:1px solid #e1e8ef;border-radius:8px;background:#fff;color:#34465b;padding:9px 11px;font:600 11px 'DM Sans',Arial,sans-serif;max-width:100%}@media(max-width:650px){.sort-control{justify-content:space-between}.sort-select{flex:1;max-width:220px}}

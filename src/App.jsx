@@ -34,6 +34,8 @@ export default function App() {
   const [sortMode, setSortMode] = useState('recentes');
   const [searchTerm, setSearchTerm] = useState('');
   const [authMode, setAuthMode] = useState('login');
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryPassword, setRecoveryPassword] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMessage, setAuthMessage] = useState('');
@@ -50,7 +52,8 @@ export default function App() {
       setSession(data?.session ?? null);
       setAuthLoading(false);
     });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
       setSession(nextSession);
       setAuthMessage('');
       setError('');
@@ -206,6 +209,33 @@ export default function App() {
       }
     } catch (err) {
       setError(err.message || 'Não foi possível concluir. Tente novamente.');
+    } finally { setSaving(false); }
+  }
+
+  async function sendPasswordRecovery() {
+    if (!email.trim()) { setError('Digite seu e-mail para receber o link de recuperação.'); return; }
+    setError(''); setAuthMessage(''); setSaving(true);
+    try {
+      const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`;
+      const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+      if (recoveryError) throw recoveryError;
+      setAuthMessage('Se esse e-mail estiver cadastrado, você receberá um link para redefinir sua senha. Confira também o spam.');
+    } catch (err) {
+      setError(err.message || 'Não foi possível enviar o link. Tente novamente.');
+    } finally { setSaving(false); }
+  }
+
+  async function updateRecoveredPassword(event) {
+    event.preventDefault();
+    if (recoveryPassword.length < 6) { setError('A nova senha precisa ter pelo menos 6 caracteres.'); return; }
+    setError(''); setAuthMessage(''); setSaving(true);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password: recoveryPassword });
+      if (updateError) throw updateError;
+      setRecoveryMode(false); setRecoveryPassword(''); setPassword('');
+      setAuthMessage('Senha alterada com sucesso. Você já pode continuar usando o aplicativo.');
+    } catch (err) {
+      setError(err.message || 'Não foi possível alterar a senha. Solicite um novo link.');
     } finally { setSaving(false); }
   }
 
@@ -454,6 +484,22 @@ export default function App() {
 
   if (authLoading) return <div className="auth-page"><div className="auth-card"><div className="brand-mark auth-mark">↗</div><h1>Crescimento Exponencial</h1><p>Carregando seu espaço...</p></div></div>;
 
+  if (recoveryMode) return <div className="auth-page">
+    <div className="auth-card">
+      <div className="brand-mark auth-mark">↗</div>
+      <p className="auth-eyebrow">SEGURANÇA DA SUA CONTA</p>
+      <h1>Crie uma nova senha</h1>
+      <p className="auth-subtitle">Escolha uma senha com pelo menos 6 caracteres.</p>
+      <form className="auth-form" onSubmit={updateRecoveredPassword}>
+        <label>Nova senha<input type="password" value={recoveryPassword} onChange={e => setRecoveryPassword(e.target.value)} placeholder="Digite sua nova senha" minLength={6} autoComplete="new-password" required /></label>
+        <button type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Alterar minha senha'}</button>
+      </form>
+      {error && <p className="auth-error" role="alert">{error}</p>}
+      {authMessage && <p className="auth-success" role="status">{authMessage}</p>}
+    </div>
+    <p className="auth-footer">© {new Date().getFullYear()} Crescimento Exponencial</p>
+  </div>;
+
   if (!session) return <div className="auth-page">
     <div className="auth-card">
       <div className="brand-mark auth-mark">↗</div>
@@ -466,6 +512,7 @@ export default function App() {
         <label>Senha<input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo de 6 caracteres" minLength={6} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} required /></label>
         <button type="submit" disabled={saving}>{saving ? 'Aguarde...' : authMode === 'login' ? 'Entrar na minha conta' : 'Criar conta gratuita'}</button>
       </form>
+      {authMode === 'login' && <p className="auth-switch"><button type="button" onClick={sendPasswordRecovery} disabled={saving}>Esqueci minha senha</button></p>}
       {error && <p className="auth-error" role="alert">{error}</p>}
       {authMessage && <p className="auth-success" role="status">{authMessage}</p>}
       <p className="auth-switch">{authMode === 'login' ? 'Ainda não tem uma conta?' : 'Já possui uma conta?'} <button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setError(''); setAuthMessage(''); }}> {authMode === 'login' ? 'Cadastre-se' : 'Fazer login'}</button></p>

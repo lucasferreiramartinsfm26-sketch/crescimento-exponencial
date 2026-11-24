@@ -186,6 +186,7 @@ export default function App() {
     </aside>
     <main className="main">
       <header className="topbar"><div className="mobile-brand">↗ Crescimento Exponencial</div><div className="date">{today}</div><div className="avatar">{greeting.slice(0,1).toUpperCase()}</div><button className="logout-button" onClick={logout}>Sair</button></header>
+      <nav className="mobile-nav">{['Visão geral', 'Minhas metas'].map(item => <button key={item} className={tab === item ? 'mobile-nav-item active' : 'mobile-nav-item'} onClick={() => setTab(item)}>{item === 'Visão geral' ? '▦ Visão geral' : '◎ Minhas metas'}</button>)}</nav>
       <section className="welcome"><div><p className="eyebrow">SEU PROGRESSO COMEÇA AQUI</p><h1>Olá, {greeting}! <span>✦</span></h1><p>Pequenas ações consistentes constroem grandes resultados.</p></div><div className="welcome-symbol">↗</div></section>
       {error && <div className="app-error" role="alert">{error}</div>}
       {tab === 'Visão geral' ? <>

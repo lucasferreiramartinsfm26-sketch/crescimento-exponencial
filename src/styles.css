@@ -367,3 +367,10 @@ footer{padding-top:36px}
 .application-empty-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:8px 0 14px}
 .application-empty-actions .empty{margin:0}
 @media(max-width:600px){.application-empty-actions{align-items:stretch;flex-direction:column}.application-empty-actions button{width:100%}}
+
+
+.message-inbox-filters{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:16px 0}
+.message-inbox-filters>label:first-child{display:grid;gap:6px;flex:1 1 260px}
+.message-inbox-unread-filter{display:flex;align-items:center;gap:8px;min-height:42px}
+.message-inbox-unread-filter input{width:18px;height:18px}
+@media(max-width:600px){.message-inbox-filters{align-items:stretch;flex-direction:column}.message-inbox-filters>label:first-child{flex-basis:auto}.message-inbox-unread-filter{min-height:36px}}

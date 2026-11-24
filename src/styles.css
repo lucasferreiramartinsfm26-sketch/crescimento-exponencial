@@ -210,3 +210,30 @@ footer{padding-top:36px}
 
 /* Ordenação de tarefas e metas */
 .sort-control{display:flex;align-items:center;gap:9px;margin:0 0 14px;color:#718096;font:600 11px 'DM Sans',Arial,sans-serif}.sort-select{border:1px solid #e1e8ef;border-radius:8px;background:#fff;color:#34465b;padding:9px 11px;font:600 11px 'DM Sans',Arial,sans-serif;max-width:100%}@media(max-width:650px){.sort-control{justify-content:space-between}.sort-select{flex:1;max-width:220px}}
+
+
+/* Painel administrativo do proprietário */
+.admin-page .section-heading{gap:12px;flex-wrap:wrap}
+.admin-stats{margin:18px 0}
+.admin-tabs{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding:5px;background:#e8eef3;border-radius:12px}
+.admin-tabs button{flex:none;border:0;border-radius:8px;background:transparent;color:#617287;padding:11px 14px;font:600 11px 'DM Sans',Arial,sans-serif;cursor:pointer}
+.admin-tabs button.active{background:#fff;color:#087b54;box-shadow:0 2px 8px #10294312}
+.admin-list{margin-bottom:18px}
+.admin-record{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;padding:17px 0;border-top:1px solid #edf1f5}
+.admin-record-main{display:grid;gap:5px;flex:1;min-width:180px}
+.admin-record-main strong{font-size:13px;color:#18334d}
+.admin-record-main span,.admin-record-main small,.admin-record-main a{font-size:11px;color:#718096;line-height:1.5;overflow-wrap:anywhere}
+.admin-record-main a{color:#087b54}
+.admin-status{flex:none;border-radius:20px;padding:6px 9px;background:#edf2f5;color:#64748b;font-size:10px;font-weight:700}
+.status-approved,.status-resolved{background:#e5f8ef;color:#087b54}
+.status-pending,.status-open,.status-reviewing{background:#fff6df;color:#946200}
+.status-rejected,.status-suspended,.status-dismissed{background:#fff0f0;color:#b42332}
+.admin-actions{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.admin-actions button{border:0;border-radius:7px;background:#0b9c6b;color:#fff;padding:8px 11px;font:600 10px 'DM Sans',Arial,sans-serif;cursor:pointer}
+.admin-actions button.danger{background:#fff0f0;color:#b42332}
+.admin-actions button.muted{background:#edf2f5;color:#526174}
+.admin-actions button:disabled{opacity:.5;cursor:wait}
+.admin-error,.admin-success{padding:10px 12px;border-radius:8px;font-size:12px}
+.admin-error{background:#fff0f0;color:#a52b36}
+.admin-success{background:#e9f9f1;color:#087b54}
+@media(max-width:650px){.admin-stats{grid-template-columns:1fr}.admin-record{gap:9px}.admin-status{order:2}.admin-record-main{flex-basis:100%}.admin-actions{gap:5px}.admin-actions button{flex:1;padding:9px 6px;font-size:9px}.admin-tabs button{padding:10px 11px}}

@@ -28,6 +28,10 @@ export default function Opportunities() {
   const [reportDetails, setReportDetails] = useState('');
   const [sendingReport, setSendingReport] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState('');
+  const [favoriteError, setFavoriteError] = useState('');
 
   async function loadOpportunities() {
     setLoading(true);
@@ -47,7 +51,33 @@ export default function Opportunities() {
     setLoading(false);
   }
 
-  useEffect(() => { loadOpportunities(); }, []);
+  useEffect(() => {
+    loadOpportunities();
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      setFavoriteIds(Array.isArray(data?.user?.user_metadata?.favorite_opportunities) ? data.user.user_metadata.favorite_opportunities.filter(id => typeof id === 'string') : []);
+    });
+    return () => { active = false; };
+  }, []);
+
+  async function toggleFavorite(item) {
+    setFavoriteBusy(item.id);
+    setFavoriteError('');
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const user = authData?.user;
+    if (authError || !user) {
+      setFavoriteError('Entre na sua conta para salvar oportunidades favoritas.');
+      setFavoriteBusy('');
+      return;
+    }
+    const current = Array.isArray(user.user_metadata?.favorite_opportunities) ? user.user_metadata.favorite_opportunities.filter(id => typeof id === 'string') : [];
+    const next = current.includes(item.id) ? current.filter(id => id !== item.id) : [...current, item.id];
+    const { error: saveError } = await supabase.auth.updateUser({ data: { favorite_opportunities: next } });
+    if (saveError) setFavoriteError('Não foi possível atualizar seus favoritos. ' + saveError.message);
+    else setFavoriteIds(next);
+    setFavoriteBusy('');
+  }
 
   async function submitReport(event) {
     event.preventDefault();
@@ -83,9 +113,9 @@ export default function Opportunities() {
       const matchesCategory = category === 'Todas' || categoryOf(item) === category;
       const company = item.company_profiles?.name || '';
       const searchable = [item.title, item.description, item.requirements, company, item.compensation].join(' ').toLocaleLowerCase('pt-BR');
-      return matchesCategory && searchable.includes(term);
+      return matchesCategory && searchable.includes(term) && (!favoritesOnly || favoriteIds.includes(item.id));
     });
-  }, [items, search, category]);
+  }, [items, search, category, favoritesOnly, favoriteIds]);
 
   return <section className="opportunities-page">
     <div className="section-heading">
@@ -102,6 +132,8 @@ export default function Opportunities() {
         </select>
       </label>
     </div>
+    <div className="opportunity-favorites-filter"><button type="button" className={favoritesOnly ? 'active' : ''} onClick={() => setFavoritesOnly(value => !value)}>★ {favoritesOnly ? 'Ver todas' : 'Minhas favoritas'} ({favoriteIds.length})</button></div>
+    {favoriteError && <p className="admin-error" role="alert">{favoriteError}</p>}
     {error && <p className="admin-error" role="alert">{error}</p>}
     {loading ? <div className="panel"><p className="empty">Carregando oportunidades...</p></div> :
       visibleItems.length ? <div className="opportunity-grid">
@@ -114,7 +146,7 @@ export default function Opportunities() {
             <span><b>Remuneração</b>{item.compensation || 'A combinar'}</span>
             <span><b>Prazo</b>{dateLabel(item.deadline)}</span>
           </div>
-          <button type="button" className="opportunity-details-button" onClick={() => setSelected(item)}>Ver detalhes</button>
+          <div className="opportunity-card-actions"><button type="button" className="opportunity-details-button" onClick={() => setSelected(item)}>Ver detalhes</button><button type="button" className={favoriteIds.includes(item.id) ? 'favorite-button saved' : 'favorite-button'} onClick={() => toggleFavorite(item)} disabled={favoriteBusy === item.id}>{favoriteBusy === item.id ? '...' : favoriteIds.includes(item.id) ? '★ Favorita' : '☆ Favoritar'}</button></div>
         </article>)}
       </div> : <div className="panel"><p className="empty">{items.length ? 'Nenhuma oportunidade corresponde à sua busca.' : 'Ainda não há oportunidades aprovadas disponíveis. Volte em breve!'}</p></div>}
     {selected && <div className="opportunity-detail-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) setSelected(null); }}>
@@ -127,6 +159,7 @@ export default function Opportunities() {
           <span><b>Pagamento</b>{selected.payment_method || 'Não informado'}</span>
           <span><b>Prazo para candidatura</b>{dateLabel(selected.deadline)}</span>
         </div>
+        <button type="button" className={favoriteIds.includes(selected.id) ? 'favorite-button saved' : 'favorite-button'} onClick={() => toggleFavorite(selected)} disabled={favoriteBusy === selected.id}>{favoriteIds.includes(selected.id) ? '★ Remover dos favoritos' : '☆ Salvar nos favoritos'}</button>
         <button type="button" className="opportunity-apply-button" onClick={() => setApplying(true)}>Candidatar-se pelo aplicativo</button>
         {selected.application_url && <a className="opportunity-apply-button" href={selected.application_url} target="_blank" rel="noreferrer">Abrir link externo da empresa</a>}
         {applying && <CandidateApplicationForm opportunity={selected} onClose={() => setApplying(false)} />}

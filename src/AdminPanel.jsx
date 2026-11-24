@@ -27,7 +27,7 @@ export default function AdminPanel() {
     setLoading(true);
     setError('');
     const [companyResult, opportunityResult, reportResult] = await Promise.all([
-      supabase.from('company_profiles').select('id,name,email,website,description,status,created_at').order('created_at', { ascending: false }),
+      supabase.from('company_profiles').select('id,name,cnpj,email,phone,website,description,status,created_at').order('created_at', { ascending: false }),
       supabase.from('opportunities').select('id,title,description,compensation,deadline,status,created_at,company_profiles(name)').order('created_at', { ascending: false }),
       supabase.from('opportunity_reports').select('id,reason,details,status,created_at,opportunity_id').order('created_at', { ascending: false })
     ]);
@@ -75,14 +75,21 @@ export default function AdminPanel() {
     {message && <p className="admin-success" role="status">{message}</p>}
     {loading ? <div className="panel"><p className="empty">Carregando informações administrativas...</p></div> :
       section === 'empresas' ? <div className="panel admin-list">
-        <div className="panel-heading"><div><h3>Cadastro de empresas</h3><p>Revise e aprove empresas antes de liberar publicações.</p></div></div>
+        <div className="panel-heading"><div><h3>Cadastro de empresas</h3><p>Revise os dados e aprove empresas antes de liberar publicações.</p></div></div>
         {companies.length ? companies.map(company => <article className="admin-record" key={company.id}>
-          <div className="admin-record-main"><strong>{company.name}</strong><span>{company.email}</span>{company.website && <a href={company.website} target="_blank" rel="noreferrer">{company.website}</a>}<small>{company.description || 'Sem descrição'} • {new Date(company.created_at).toLocaleDateString('pt-BR')}</small></div>
+          <div className="admin-record-main">
+            <strong>{company.name}</strong>
+            <span>CNPJ: {company.cnpj || 'Não informado'}</span>
+            <span>E-mail: {company.email || 'Não informado'}</span>
+            <span>Telefone: {company.phone || 'Não informado'}</span>
+            {company.website && <a href={company.website} target="_blank" rel="noreferrer">Site: {company.website}</a>}
+            <small>{company.description || 'Sem descrição'} • Cadastro em {new Date(company.created_at).toLocaleDateString('pt-BR')}</small>
+          </div>
           <span className={'admin-status status-' + company.status}>{statusLabels[company.status] || company.status}</span>
           <div className="admin-actions">
-            <button disabled={busyId === company.id} onClick={() => changeStatus('company_profiles', company.id, 'approved', setCompanies, companies)}>Aprovar</button>
-            <button className="danger" disabled={busyId === company.id} onClick={() => changeStatus('company_profiles', company.id, 'rejected', setCompanies, companies)}>Rejeitar</button>
-            <button className="muted" disabled={busyId === company.id} onClick={() => changeStatus('company_profiles', company.id, 'suspended', setCompanies, companies)}>Suspender</button>
+            <button disabled={busyId === company.id || company.status === 'approved'} onClick={() => changeStatus('company_profiles', company.id, 'approved', setCompanies, companies)}>Aprovar</button>
+            <button className="danger" disabled={busyId === company.id || company.status === 'rejected'} onClick={() => changeStatus('company_profiles', company.id, 'rejected', setCompanies, companies)}>Rejeitar</button>
+            <button className="muted" disabled={busyId === company.id || company.status === 'suspended'} onClick={() => changeStatus('company_profiles', company.id, 'suspended', setCompanies, companies)}>Suspender</button>
           </div>
         </article>) : <p className="empty">Nenhuma empresa cadastrada até agora.</p>}
       </div> : section === 'oportunidades' ? <div className="panel admin-list">

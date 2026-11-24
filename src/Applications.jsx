@@ -79,6 +79,8 @@ export function MyApplications() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   async function load() {
     setLoading(true);
@@ -99,14 +101,36 @@ export function MyApplications() {
 
   useEffect(() => { load(); }, []);
 
+  const counts = {
+    all: items.length,
+    pending: items.filter(item => item.status === 'pending').length,
+    reviewing: items.filter(item => item.status === 'reviewing').length,
+    approved: items.filter(item => item.status === 'approved').length,
+    rejected: items.filter(item => item.status === 'rejected').length
+  };
+  const normalizedSearch = searchTerm.trim().toLocaleLowerCase('pt-BR');
+  const filteredItems = items.filter(item => {
+    const title = item.opportunities?.title || '';
+    const company = item.opportunities?.company_profiles?.name || '';
+    const matchesSearch = !normalizedSearch || title.toLocaleLowerCase('pt-BR').includes(normalizedSearch) || company.toLocaleLowerCase('pt-BR').includes(normalizedSearch);
+    return matchesSearch && (statusFilter === 'all' || item.status === statusFilter);
+  });
+
   return <section className="panel applications-list-panel">
     <div className="panel-heading"><div><h3>Minhas candidaturas</h3><p>Acompanhe o andamento das oportunidades às quais você se candidatou.</p></div><button type="button" className="logout-button" onClick={load} disabled={loading}>Atualizar</button></div>
+    <div className="application-management-summary">
+      <div><strong>{counts.all}</strong><span>Total</span></div><div><strong>{counts.pending}</strong><span>Novas</span></div><div><strong>{counts.reviewing}</strong><span>Em análise</span></div><div><strong>{counts.approved}</strong><span>Aprovadas</span></div><div><strong>{counts.rejected}</strong><span>Não selecionadas</span></div>
+    </div>
+    <div className="application-management-filters">
+      <label>Buscar oportunidade ou empresa<input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Digite para buscar" /></label>
+      <label>Filtrar por situação<select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Todas as situações</option><option value="pending">Novas</option><option value="reviewing">Em análise</option><option value="approved">Aprovadas</option><option value="rejected">Não selecionadas</option></select></label>
+    </div>
     {error && <p className="admin-error" role="alert">{error}</p>}
-    {loading ? <p className="empty">Carregando candidaturas...</p> : items.length ? items.map(item => <article className="admin-record" key={item.id}>
+    {loading ? <p className="empty">Carregando candidaturas...</p> : filteredItems.length ? filteredItems.map(item => <article className="admin-record" key={item.id}>
       <div className="admin-record-main"><strong>{item.opportunities?.title || 'Oportunidade'}</strong><span>{item.opportunities?.company_profiles?.name || 'Empresa'}</span><small>Enviada em {new Date(item.created_at).toLocaleDateString('pt-BR')}</small></div>
       <span className={'admin-status status-' + item.status}>{labels[item.status] || item.status}</span>
       <ApplicationMessages applicationId={item.id} />
-    </article>) : <p className="empty">Você ainda não enviou candidaturas.</p>}
+    </article>) : items.length ? <p className="empty">Nenhuma candidatura corresponde à busca e ao filtro selecionados.</p> : <p className="empty">Você ainda não enviou candidaturas.</p>}
   </section>;
 }
 

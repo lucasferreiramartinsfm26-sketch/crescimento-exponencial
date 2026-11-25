@@ -13,7 +13,8 @@ Este documento acompanha a preparação do lançamento inicial (MVP). Não repre
 
 - [ ] Confirmar no aplicativo publicado o cadastro, login e recuperação de senha.
 - [ ] Fazer um teste completo com uma conta de candidato: perfil, busca, candidatura e mensagens.
-- [ ] Fazer um teste completo com uma conta de empresa: cadastro/aprovação, edição do cadastro aprovado, publicação e resposta a candidaturas.
+- [x] Responsável confirmou que a edição do cadastro de empresa aprovada salva corretamente.
+- [ ] Fazer um teste completo com uma conta de empresa: cadastro/aprovação, publicação e resposta a candidaturas.
 - [ ] Fazer um teste com administrador: aprovação, rejeição e moderação.
 - [x] Responsável confirmou que `tasks_fields.sql` e `launch_security_hardening.sql` foram executados com sucesso no Supabase.
 - [ ] Revisar as políticas RLS e permissões do banco com resultados verificáveis.

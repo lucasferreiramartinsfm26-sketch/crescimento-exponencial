@@ -72,3 +72,11 @@ O GitHub Actions compila o projeto e publica automaticamente no GitHub Pages a c
 - A caixa de mensagens e os recibos de leitura usam as tabelas `application_messages` e `application_message_reads`.
 - A Central de notificações atualiza automaticamente quando a página está aberta e também pode ser atualizada manualmente.
 - A publicação bem-sucedida confirma a compilação e o deploy; testes finais de autenticação e fluxos com contas reais devem ser feitos no próprio aplicativo.
+
+## Documentos de lançamento (minutas)
+
+- [Checklist de preparação do lançamento](docs/launch-checklist.md)
+- [Minuta da Política de Privacidade](docs/privacy-policy-draft.md)
+- [Minuta dos Termos de Uso](docs/terms-of-use-draft.md)
+
+**Atenção:** as minutas jurídicas ainda não estão prontas para publicação. Complete os campos indicados, confirme as práticas reais de tratamento de dados e revise os documentos antes de apresentá-los aos usuários.

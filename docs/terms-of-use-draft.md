@@ -4,7 +4,7 @@
 
 **Última atualização:** [DATA]  
 **Responsável pelo serviço:** [NOME/RAZÃO SOCIAL E CPF/CNPJ]  
-**Contato oficial:** [E-MAIL DE SUPORTE]
+**Contato oficial:** lucasferreiramartinsfm26@gmail.com
 
 ## 1. Aceitação
 
@@ -85,5 +85,5 @@ Estes Termos poderão ser atualizados. A versão vigente deverá indicar a data 
 
 Aplicam-se as leis da República Federativa do Brasil, respeitadas as regras de competência legal.
 
-Contato: **[E-MAIL DE SUPORTE]**.  
+Contato: **lucasferreiramartinsfm26@gmail.com**.  
 Responsável pelo serviço: **[NOME/RAZÃO SOCIAL E DADOS DE IDENTIFICAÇÃO]**.

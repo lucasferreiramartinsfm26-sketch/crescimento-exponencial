@@ -6,7 +6,7 @@ Esta função exclui somente a conta autenticada que faz a chamada. A confirmaç
 
 1. Abra o projeto: https://supabase.com/dashboard/project/wxjhxheonexietlkqlke
 2. Entre em **Edge Functions → Secrets**.
-3. Adicione `SUPABASE_SERVICE_ROLE_KEY` com o valor da chave secreta administrativa do projeto.
+3. Adicione `SERVICE_ROLE_KEY` com o valor da chave secreta administrativa do projeto.
 4. Não coloque essa chave em `src/`, no GitHub, no navegador ou em mensagens.
 5. O ambiente Edge Functions fornece `SUPABASE_URL` e `SUPABASE_ANON_KEY`; confirme que estão disponíveis.
 

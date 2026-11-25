@@ -4,7 +4,7 @@
 
 **Última atualização:** [DATA]  
 **Controlador dos dados:** [NOME/RAZÃO SOCIAL E CPF/CNPJ DO RESPONSÁVEL]  
-**Contato de privacidade e suporte:** [E-MAIL DE CONTATO]  
+**Contato de privacidade e suporte:** lucasferreiramartinsfm26@gmail.com  
 **Endereço ou canal para solicitações:** [INFORMAÇÃO DE CONTATO]
 
 ## 1. Sobre esta política
@@ -57,7 +57,7 @@ Não prometa exclusão imediata ou automática até existir um procedimento oper
 
 ## 7. Direitos dos titulares
 
-O usuário pode solicitar confirmação de tratamento, acesso, correção, informações sobre compartilhamento, anonimização, bloqueio ou eliminação quando aplicável, portabilidade nos termos legais e revisão de decisões automatizadas quando aplicável. Os pedidos devem ser encaminhados para **[E-MAIL DE PRIVACIDADE]** e serão analisados conforme a legislação aplicável e as limitações legais de retenção.
+O usuário pode solicitar confirmação de tratamento, acesso, correção, informações sobre compartilhamento, anonimização, bloqueio ou eliminação quando aplicável, portabilidade nos termos legais e revisão de decisões automatizadas quando aplicável. Os pedidos devem ser encaminhados para **lucasferreiramartinsfm26@gmail.com** e serão analisados conforme a legislação aplicável e as limitações legais de retenção.
 
 ## 8. Crianças e adolescentes
 
@@ -71,4 +71,4 @@ A minuta não identificou ferramenta de publicidade ou analytics no código cons
 
 Esta política poderá ser atualizada para refletir mudanças no serviço ou na legislação. A versão vigente deverá indicar a data de atualização e ficar acessível aos usuários.
 
-Dúvidas e solicitações: **[E-MAIL DE CONTATO]**.
+Dúvidas e solicitações: **lucasferreiramartinsfm26@gmail.com**.

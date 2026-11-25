@@ -71,7 +71,7 @@ export default function CompanyPortal() {
     setEditingCompanyId(company.id);
     setForm({ name: company.name || '', cnpj: company.cnpj || '', email: company.email || '', phone: company.phone || '', website: company.website || '', description: company.description || '' });
     setError('');
-    setMessage('Editando cadastro pendente. Salve as alterações ou cancele.');
+    setMessage('Editando os dados cadastrais. O status de aprovação não será alterado.');
   }
 
   function cancelCompanyEdit() {
@@ -104,7 +104,7 @@ export default function CompanyPortal() {
       status: 'pending'
     };
     const result = editingCompanyId
-      ? await supabase.from('company_profiles').update({ name: payload.name, cnpj: payload.cnpj, email: payload.email, phone: payload.phone, website: payload.website, description: payload.description }).eq('id', editingCompanyId).eq('status', 'pending')
+      ? await supabase.from('company_profiles').update({ name: payload.name, cnpj: payload.cnpj, email: payload.email, phone: payload.phone, website: payload.website, description: payload.description }).eq('id', editingCompanyId)
       : await supabase.from('company_profiles').insert(payload);
     if (result.error) setError('Não foi possível salvar o cadastro. ' + result.error.message);
     else {
@@ -156,7 +156,7 @@ export default function CompanyPortal() {
     <div className="section-heading"><div><h2>Área da empresa</h2><p>Cadastre sua empresa e acompanhe suas oportunidades.</p></div></div>
     <div className="company-layout">
       <section className="panel company-form-panel">
-        <div className="panel-heading"><div><h3>{editingCompanyId ? 'Editar cadastro da empresa' : 'Cadastrar empresa'}</h3><p>Cadastros pendentes podem ser corrigidos antes da aprovação.</p></div></div>
+        <div className="panel-heading"><div><h3>{editingCompanyId ? 'Editar cadastro da empresa' : 'Cadastrar empresa'}</h3><p>Atualize os dados cadastrais da sua empresa. A aprovação não será modificada.</p></div></div>
         <form className="company-form" onSubmit={submit}>
           <label>Nome da empresa<input name="name" value={form.name} onChange={updateField} minLength="2" maxLength="160" placeholder="Razão social ou nome fantasia" required /></label>
           <label>CNPJ<input name="cnpj" value={form.cnpj} onChange={updateField} inputMode="numeric" maxLength="18" placeholder="00.000.000/0000-00" required /></label>
@@ -172,8 +172,8 @@ export default function CompanyPortal() {
         {loading ? <p className="empty">Carregando...</p> : companies.length ? companies.map(company => <article className="admin-record" key={company.id}>
           <div className="admin-record-main"><strong>{company.name}</strong><span>{company.cnpj || 'CNPJ não informado'} • {company.email}</span><small>{company.phone || ''}</small><small>Enviado em {new Date(company.created_at).toLocaleDateString('pt-BR')}</small></div>
           <span className={'admin-status status-' + company.status}>{statusLabels[company.status] || company.status}</span>
-          {company.status === 'pending' && <button type="button" className="logout-button" onClick={() => startCompanyEdit(company)}>Editar cadastro</button>}
-          {company.status === 'approved' && <p className="company-approved-note">Empresa aprovada. Você já pode cadastrar oportunidades.</p>}
+          {['pending', 'approved'].includes(company.status) && <button type="button" className="logout-button" onClick={() => startCompanyEdit(company)}>Editar cadastro</button>}
+          {company.status === 'approved' && <p className="company-approved-note">Empresa aprovada. Você já pode cadastrar oportunidades e atualizar os dados cadastrais.</p>}
           {company.status === 'rejected' && <p className="company-rejected-note">Cadastro não aprovado. Entre em contato com o suporte para orientações.</p>}
           {company.status === 'suspended' && <p className="company-rejected-note">Cadastro suspenso. Entre em contato com o suporte para orientações.</p>}
         </article>) : <p className="empty">Você ainda não cadastrou uma empresa.</p>}

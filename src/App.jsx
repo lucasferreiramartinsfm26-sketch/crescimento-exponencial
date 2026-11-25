@@ -40,6 +40,8 @@ export default function App() {
   const [recoveryPassword, setRecoveryPassword] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -197,10 +199,11 @@ export default function App() {
     setSaving(true);
     try {
       if (authMode === 'signup') {
+        if (!ageConfirmed || !legalAccepted) throw new Error('Confirme que tem 18 anos ou mais e aceite os Termos de Uso e a Política de Privacidade.');
+        const acceptedAt = new Date().toISOString();
         const { data, error: authError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: { data: { name: name.trim() } }
+          email: email.trim(), password,
+          options: { data: { name: name.trim(), age_confirmed: true, age_confirmed_at: acceptedAt, terms_accepted: true, terms_version: '1.0-2026-11-25', terms_accepted_at: acceptedAt, privacy_accepted: true, privacy_version: '1.0-2026-11-25', privacy_accepted_at: acceptedAt } }
         });
         if (authError) throw authError;
         if (data.session) setAuthMessage('Conta criada! Você já pode começar.');
@@ -499,7 +502,7 @@ export default function App() {
       {error && <p className="auth-error" role="alert">{error}</p>}
       {authMessage && <p className="auth-success" role="status">{authMessage}</p>}
     </div>
-    <p className="auth-footer">© {new Date().getFullYear()} Crescimento Exponencial</p>
+    <p className="auth-footer">© {new Date().getFullYear()} Crescimento Exponencial · <a href={`${import.meta.env.BASE_URL}termos.html`} target="_blank" rel="noreferrer">Termos</a> · <a href={`${import.meta.env.BASE_URL}privacidade.html`} target="_blank" rel="noreferrer">Privacidade</a></p>
   </div>;
 
   if (!session) return <div className="auth-page">
@@ -512,6 +515,10 @@ export default function App() {
         {authMode === 'signup' && <label>Seu nome<input value={name} onChange={e => setName(e.target.value)} placeholder="Como podemos chamar você?" required /></label>}
         <label>E-mail<input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="voce@exemplo.com" autoComplete="email" required /></label>
         <label>Senha<input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo de 6 caracteres" minLength={6} autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} required /></label>
+        {authMode === 'signup' && <div className="auth-legal-consent">
+          <label><input type="checkbox" checked={ageConfirmed} onChange={e => setAgeConfirmed(e.target.checked)} required /> Confirmo que tenho 18 anos ou mais.</label>
+          <label><input type="checkbox" checked={legalAccepted} onChange={e => setLegalAccepted(e.target.checked)} required /> Li e aceito os <a href={`${import.meta.env.BASE_URL}termos.html`} target="_blank" rel="noreferrer">Termos de Uso</a> e a <a href={`${import.meta.env.BASE_URL}privacidade.html`} target="_blank" rel="noreferrer">Política de Privacidade</a>.</label>
+        </div>}
         <button type="submit" disabled={saving}>{saving ? 'Aguarde...' : authMode === 'login' ? 'Entrar na minha conta' : 'Criar conta gratuita'}</button>
       </form>
       {authMode === 'login' && <p className="auth-switch"><button type="button" onClick={sendPasswordRecovery} disabled={saving}>Esqueci minha senha</button></p>}
@@ -519,7 +526,7 @@ export default function App() {
       {authMessage && <p className="auth-success" role="status">{authMessage}</p>}
       <p className="auth-switch">{authMode === 'login' ? 'Ainda não tem uma conta?' : 'Já possui uma conta?'} <button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setError(''); setAuthMessage(''); }}> {authMode === 'login' ? 'Cadastre-se' : 'Fazer login'}</button></p>
     </div>
-    <p className="auth-footer">© {new Date().getFullYear()} Crescimento Exponencial</p>
+    <p className="auth-footer">© {new Date().getFullYear()} Crescimento Exponencial · <a href={`${import.meta.env.BASE_URL}termos.html`} target="_blank" rel="noreferrer">Termos</a> · <a href={`${import.meta.env.BASE_URL}privacidade.html`} target="_blank" rel="noreferrer">Privacidade</a></p>
   </div>;
 
   return <div className="app-shell">
@@ -604,7 +611,7 @@ export default function App() {
           {actionTasks.length === 0 ? <p className="empty">Nenhuma tarefa ainda. Adicione sua primeira tarefa acima.</p> : visibleActionTasks.length === 0 && <p className="empty">Nenhuma tarefa encontrada neste filtro.</p>}</div>}
         </section><aside className="panel progress-panel"><div className="panel-heading"><div><h3>Seu ritmo</h3><p>O progresso de hoje</p></div></div><div className="ring" style={{'--progress': progress + '%'}}><div><strong>{progress}%</strong><small>concluído</small></div></div><p className="motivation">{progress === 100 ? 'Excelente! Você concluiu tudo.' : 'A constância é mais importante que a velocidade.'}</p></aside></div>
       </> : <section className="panel goals-panel"><div className="panel-heading"><div><h3>Minhas metas</h3><p>Defina objetivos e acompanhe suas conquistas.</p></div><span className="count">{completedGoals}/{goals.length} concluídas</span></div><form className="add-form" onSubmit={addGoal}><input value={newGoal} onChange={e => setNewGoal(e.target.value)} placeholder="Ex.: Ler 12 livros este ano..." aria-label="Nova meta"/><select className="priority-select" value={newGoalPriority} onChange={e => setNewGoalPriority(e.target.value)} aria-label="Prioridade da meta"><option>Baixa</option><option>Média</option><option>Alta</option></select><input className="due-date-input" type="date" value={newGoalDueDate} onChange={e => setNewGoalDueDate(e.target.value)} aria-label="Data de vencimento da meta"/><select className="priority-select" value={newGoalReminderDays} onChange={e => setNewGoalReminderDays(Number(e.target.value))} aria-label="Antecedência do lembrete"><option value={1}>Lembrar 1 dia antes</option><option value={3}>Lembrar 3 dias antes</option><option value={7}>Lembrar 7 dias antes</option><option value={15}>Lembrar 15 dias antes</option></select><button type="submit" disabled={saving || !newGoal.trim()}>{saving ? 'Salvando...' : 'Criar meta'}</button></form><div className="task-search"><input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscar pelo nome..." aria-label="Buscar tarefas"/></div><div className="task-filters" aria-label="Filtrar metas">{['Todas', 'Pendentes', 'Concluídas'].map(filter => <button type="button" key={filter} className={taskFilter === filter ? 'task-filter active' : 'task-filter'} onClick={() => setTaskFilter(filter)}>{filter}</button>)}</div><div className="sort-control"><label htmlFor="goal-sort">Ordenar por</label><select id="goal-sort" className="sort-select" value={sortMode} onChange={e => setSortMode(e.target.value)}><option value="recentes">Mais recentes</option><option value="prazo">Prazo mais próximo</option><option value="prioridade">Maior prioridade</option><option value="nome">Nome (A–Z)</option></select></div><p className="goal-message">Cada meta fica salva na sua conta. Marque quando concluir ou edite e exclua quando precisar.</p><div className="task-list">{sortItems(visibleGoals).map(goal => <div className={goal.done ? 'task done' : 'task'} key={goal.id}><button type="button" className={goal.done ? "task-complete-button checked" : "task-complete-button"} onClick={() => toggleTask(goal)} aria-pressed={goal.done} aria-label={goal.done ? "Reabrir meta" : "Concluir meta"}>{goal.done ? "✓" : ""}</button><span className="task-title">{goal.title}<small>Meta pessoal • {goal.done ? 100 : (goal.progress || 0)}% concluído{dueDateLabel(goal) ? ` • ${dueDateLabel(goal)}` : ''}</small><span className="goal-progress-track"><i style={{width: (goal.done ? 100 : (goal.progress || 0)) + '%'}}/></span></span><input className="goal-progress-input" type="range" min="0" max="100" step="5" value={goal.done ? 100 : (goal.progress || 0)} onChange={e => updateGoalProgress(goal, e.target.value)} aria-label="Progresso da meta em porcentagem" disabled={goal.done}/><input className="due-date-input item-due-date" type="date" value={goal.due_date || ''} onChange={e => updateDueDate(goal, e.target.value)} aria-label="Alterar vencimento da meta"/><select className="priority-badge" value={goal.reminder_days ?? 3} onChange={e => updateReminderDays(goal, e.target.value)} aria-label="Antecedência do lembrete"><option value={1}>1 dia</option><option value={3}>3 dias</option><option value={7}>7 dias</option><option value={15}>15 dias</option></select><span className="task-state">{goal.done ? 'Concluída' : 'Em andamento'}</span><select className={'priority-badge priority-' + (goal.priority || 'Média').toLocaleLowerCase('pt-BR')} value={goal.priority || 'Média'} onChange={e => updatePriority(goal, e.target.value)} aria-label="Alterar prioridade"><option>Baixa</option><option>Média</option><option>Alta</option></select><button type="button" className="task-edit-button" onClick={() => startEditing(goal)} aria-label="Editar meta">✎</button><button type="button" onClick={() => deleteTask(goal)} disabled={saving} aria-label="Excluir meta" title="Excluir meta" style={{marginLeft:8,border:0,background:"transparent",color:"#d14b4b",fontSize:18,cursor:"pointer",padding:"6px"}}>🗑</button></div>)}{goals.length === 0 ? <p className="empty">Você ainda não criou metas. Comece adicionando sua primeira meta acima.</p> : visibleGoals.length === 0 && <p className="empty">Nenhuma meta encontrada neste filtro.</p>}</div></section>}
-      <footer>© {new Date().getFullYear()} Crescimento Exponencial <span>•</span> Evolua um dia de cada vez. Seus dados ficam vinculados à sua conta.</footer>
+      <footer>© {new Date().getFullYear()} Crescimento Exponencial · <a href={`${import.meta.env.BASE_URL}termos.html`} target="_blank" rel="noreferrer">Termos</a> · <a href={`${import.meta.env.BASE_URL}privacidade.html`} target="_blank" rel="noreferrer">Privacidade</a> <span>•</span> Evolua um dia de cada vez. Seus dados ficam vinculados à sua conta.</footer>
     </main>
   </div>;
 }

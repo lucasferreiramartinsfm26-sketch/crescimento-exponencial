@@ -2,10 +2,10 @@
 
 > **RASCUNHO — NÃO PUBLICAR AINDA.** Esta minuta foi preparada a partir dos campos e fluxos encontrados no código do aplicativo. O responsável pelo serviço deve completar os campos entre colchetes, confirmar as práticas reais do Supabase e revisar o texto com orientação jurídica antes de disponibilizá-lo aos usuários.
 
-**Última atualização:** [DATA]  
+**Última atualização:** 24/11/2026  
 **Controlador dos dados:** Lucas Ferreira Martins — responsável pessoa física; nome civil completo informado pelo responsável  
 **Contato de privacidade e suporte:** lucasferreiramartinsfm26@gmail.com  
-**Endereço ou canal para solicitações:** [INFORMAÇÃO DE CONTATO]
+**Endereço ou canal para solicitações:** Para solicitações sobre dados pessoais, utilize o e-mail lucasferreiramartinsfm26@gmail.com.
 
 ## 1. Sobre esta política
 

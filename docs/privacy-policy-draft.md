@@ -3,7 +3,7 @@
 > **RASCUNHO — NÃO PUBLICAR AINDA.** Esta minuta foi preparada a partir dos campos e fluxos encontrados no código do aplicativo. O responsável pelo serviço deve completar os campos entre colchetes, confirmar as práticas reais do Supabase e revisar o texto com orientação jurídica antes de disponibilizá-lo aos usuários.
 
 **Última atualização:** [DATA]  
-**Controlador dos dados:** [NOME/RAZÃO SOCIAL E CPF/CNPJ DO RESPONSÁVEL]  
+**Controlador dos dados:** Pessoa física — nome completo e CPF do responsável deverão ser informados antes da publicação  
 **Contato de privacidade e suporte:** lucasferreiramartinsfm26@gmail.com  
 **Endereço ou canal para solicitações:** [INFORMAÇÃO DE CONTATO]
 

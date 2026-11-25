@@ -15,7 +15,7 @@ Este documento acompanha a preparação do lançamento inicial (MVP). Não repre
 - [ ] Fazer um teste completo com uma conta de candidato: perfil, busca, candidatura e mensagens.
 - [ ] Fazer um teste completo com uma conta de empresa: cadastro/aprovação, publicação e resposta a candidaturas.
 - [ ] Fazer um teste com administrador: aprovação, rejeição e moderação.
-- [ ] Confirmar no Supabase que as migrações `tasks_fields.sql` e `launch_security_hardening.sql` foram aplicadas sem erros.
+- [x] Responsável confirmou que `tasks_fields.sql` e `launch_security_hardening.sql` foram executados com sucesso no Supabase.
 - [ ] Revisar as políticas RLS e permissões do banco com resultados verificáveis.
 - [ ] Publicar Política de Privacidade e Termos de Uso, com informações reais sobre dados coletados, finalidade, retenção, contato e direitos dos titulares.
 - [ ] Definir um canal de suporte e um procedimento para receber e tratar solicitações.

@@ -27,7 +27,8 @@ on table public.application_message_reads to authenticated;
 grant update (read)
 on table public.company_notifications to authenticated;
 
--- Empresa edita seus dados enquanto pendente; administração altera status.
+-- A empresa proprietária pode editar seus dados cadastrais enquanto pendente ou aprovada.
+-- A trigger protect_company_status impede que a empresa altere o status; somente admin pode fazê-lo.
 grant update (name, cnpj, email, phone, website, description, status, updated_at)
 on table public.company_profiles to authenticated;
 

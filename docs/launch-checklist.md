@@ -5,7 +5,7 @@ Este documento acompanha a preparação do lançamento inicial (MVP). Não repre
 ## Já verificado
 
 - [x] Projeto compila e o GitHub Actions concluiu o deploy da versão mais recente.
-- [x] Fluxos principais foram testados pelo responsável no aplicativo: candidato, empresa e administrador.
+- [ ] Concluir e registrar os testes funcionais de candidato, empresa e administrador; não é necessário criar uma segunda conta para continuar a revisão técnica.
 - [x] Ajustes recentes de navegação e validação foram enviados ao repositório.
 - [x] Página inicial recebeu título e metadados de compartilhamento.
 

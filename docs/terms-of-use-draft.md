@@ -3,7 +3,7 @@
 > **RASCUNHO — NÃO PUBLICAR AINDA.** O responsável pelo Crescimento Exponencial deve preencher os campos indicados, definir regras operacionais e revisar o documento com orientação jurídica antes de disponibilizá-lo aos usuários.
 
 **Última atualização:** [DATA]  
-**Responsável pelo serviço:** Lucas Martins — responsável pessoa física; confirmar se é o nome civil completo antes da publicação  
+**Responsável pelo serviço:** Lucas Ferreira Martins — responsável pessoa física; nome civil completo informado pelo responsável  
 **Contato oficial:** lucasferreiramartinsfm26@gmail.com
 
 ## 1. Aceitação
@@ -86,4 +86,4 @@ Estes Termos poderão ser atualizados. A versão vigente deverá indicar a data 
 Aplicam-se as leis da República Federativa do Brasil, respeitadas as regras de competência legal.
 
 Contato: **lucasferreiramartinsfm26@gmail.com**.  
-Responsável pelo serviço: **Lucas Martins — responsável pessoa física; confirmar se é o nome civil completo antes da publicação**.
+Responsável pelo serviço: **Lucas Ferreira Martins — responsável pessoa física; confirmar se é o nome civil completo antes da publicação**.

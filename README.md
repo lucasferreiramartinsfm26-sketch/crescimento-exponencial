@@ -32,9 +32,10 @@ Para montar uma nova instância, execute os scripts SQL no SQL Editor do Supabas
 5. `supabase/company_notifications.sql`
 6. `supabase/opportunity_applications.sql`
 7. `supabase/launch_security_hardening.sql` (proteção adicional das candidaturas)
-8. `supabase/application_messages.sql`
-9. `supabase/application_message_reads.sql`
-10. `supabase/application_messages_realtime.sql`
+8. `supabase/launch_column_permissions.sql` (permissões mínimas de atualização; aplicar após revisar e confirmar as políticas RLS)
+9. `supabase/application_messages.sql`
+10. `supabase/application_message_reads.sql`
+11. `supabase/application_messages_realtime.sql`
 
 Depois, cadastre a conta responsável pela administração em `public.platform_admins` pelo SQL Editor. Use o e-mail da conta que fará login:
 

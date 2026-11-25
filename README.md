@@ -29,13 +29,14 @@ Para montar uma nova instância, execute os scripts SQL no SQL Editor do Supabas
 2. `supabase/tasks_fields.sql` (compatibilidade com a tabela de tarefas existente)
 3. `supabase/platform_schema.sql`
 4. `supabase/company_registration_fields.sql`
-5. `supabase/company_notifications.sql`
-6. `supabase/opportunity_applications.sql`
-7. `supabase/launch_security_hardening.sql` (proteção adicional das candidaturas)
-8. `supabase/launch_column_permissions.sql` (permissões mínimas de atualização; aplicar após revisar e confirmar as políticas RLS)
-9. `supabase/application_messages.sql`
-10. `supabase/application_message_reads.sql`
-11. `supabase/application_messages_realtime.sql`
+5. `supabase/company_profile_owner_update.sql` (edição do cadastro pela empresa, sem permitir alteração do status)
+6. `supabase/company_notifications.sql`
+7. `supabase/opportunity_applications.sql`
+8. `supabase/launch_security_hardening.sql` (proteção adicional das candidaturas)
+9. `supabase/launch_column_permissions.sql` (permissões mínimas de atualização; aplicar após revisar e confirmar as políticas RLS)
+10. `supabase/application_messages.sql`
+11. `supabase/application_message_reads.sql`
+12. `supabase/application_messages_realtime.sql`
 
 Depois, cadastre a conta responsável pela administração em `public.platform_admins` pelo SQL Editor. Use o e-mail da conta que fará login:
 

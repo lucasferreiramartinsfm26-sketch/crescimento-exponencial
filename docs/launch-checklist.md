@@ -42,5 +42,6 @@ Divulgar amplamente somente depois de concluir os itens obrigatórios da seção
 ## Identificação do responsável
 
 - [x] Definido: o aplicativo será operado em nome do responsável como pessoa física.
-- [ ] Antes da publicação, inserir nome civil completo e dados de identificação exigidos nos documentos, após revisão jurídica.
+- [x] Nome informado para identificação: Lucas Martins (confirmar se corresponde ao nome civil completo antes da publicação).
+- [ ] Conferir os dados de identificação exigidos nos documentos, após revisão jurídica.
 - [x] Contato oficial de suporte e privacidade definido: lucasferreiramartinsfm26@gmail.com.

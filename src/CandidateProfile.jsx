@@ -53,16 +53,21 @@ export default function CandidateProfile() {
   }
 
   async function deleteAccount() {
-    const confirmed = window.confirm(
-      'Tem certeza de que deseja excluir permanentemente sua conta e os dados associados? Esta ação não pode ser desfeita.'
+    const confirmation = window.prompt(
+      'ATENÇÃO: a exclusão da conta e dos dados associados é permanente e não pode ser desfeita. Para confirmar, digite exatamente: DELETE_MY_ACCOUNT'
     );
-    if (!confirmed) return;
+    if (confirmation !== 'DELETE_MY_ACCOUNT') {
+      if (confirmation !== null) {
+        setError('Confirmação não realizada. A frase digitada não corresponde ao texto exigido.');
+      }
+      return;
+    }
 
     setDeleting(true);
     setError('');
     setMessage('');
     const { error: deleteError } = await supabase.functions.invoke('delete-account', {
-      body: { confirm: 'DELETE_MY_ACCOUNT' }
+      body: { confirm: confirmation }
     });
 
     if (deleteError) {

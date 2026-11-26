@@ -1,9 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const allowedOrigin = "https://lucasferreiramartinsfm26-sketch.github.io";
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
 };
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -14,6 +16,11 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
 }
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("Origin");
+  if (origin && origin !== allowedOrigin) {
+    return jsonResponse({ error: "Origem não autorizada." }, 403);
+  }
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -32,8 +39,13 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Sessão não encontrada. Entre novamente." }, 401);
     }
 
-    const body = await req.json().catch(() => ({}));
-    if (body?.confirm !== "DELETE_MY_ACCOUNT") {
+    const contentType = req.headers.get("Content-Type") ?? "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return jsonResponse({ error: "Formato de solicitação inválido." }, 415);
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || body.confirm !== "DELETE_MY_ACCOUNT") {
       return jsonResponse({ error: "Confirmação obrigatória não informada." }, 400);
     }
 

@@ -18,7 +18,8 @@ Este documento acompanha a preparação do lançamento inicial (MVP). Não repre
 - [ ] Fazer um teste com administrador: aprovação, rejeição e moderação.
 - [x] Responsável confirmou que `tasks_fields.sql` e `launch_security_hardening.sql` foram executados com sucesso no Supabase.
 - [ ] Revisar as políticas RLS e permissões do banco com resultados verificáveis.
-- [ ] Publicar Política de Privacidade e Termos de Uso, com informações reais sobre dados coletados, finalidade, retenção, contato e direitos dos titulares.
+- [ ] Revisar juridicamente e validar a Política de Privacidade e os Termos publicados, especialmente retenção, exclusão em cascata, fornecedores e direitos dos titulares.
+- [x] Fluxo de exclusão da conta implantado e confirmação por frase verificada na interface; falta validar a exclusão dos registros relacionados no banco remoto sem apagar conta real.
 - [ ] Definir um canal de suporte e um procedimento para receber e tratar solicitações.
 - [ ] Definir como serão feitos e testados os backups dos dados do serviço.
 - [ ] Conferir o aplicativo em celular e computador, incluindo mensagens de erro e telas vazias.

@@ -1,6 +1,11 @@
 name: Deploy delete-account Edge Function
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/delete-account/**'
+      - '.github/workflows/deploy-delete-account.yml'
   workflow_dispatch:
 
 jobs:

@@ -71,7 +71,7 @@ O tratamento de dados pessoais é explicado na Política de Privacidade, que dev
 
 ## 12. Suspensão e encerramento
 
-**DEFINIR ANTES DE PUBLICAR:** descrever como o usuário poderá encerrar sua conta, como solicitar exclusão de dados, em quais hipóteses a plataforma poderá suspender o acesso e como será feita a comunicação e eventual contestação.
+O usuário autenticado pode iniciar a exclusão da própria conta na seção “Meu perfil”, mediante confirmação expressa por frase. A operação é permanente e remove a conta de autenticação; a exclusão dos registros associados depende das regras de integridade do banco. Dados que devam ser preservados por obrigação legal ou exercício regular de direitos poderão ser mantidos pelo período aplicável. A plataforma poderá suspender o acesso por motivo legítimo de segurança, fraude ou violação destes Termos, observados os direitos legais dos envolvidos. Solicitações e dúvidas podem ser encaminhadas ao contato oficial.
 
 ## 13. Limitação e responsabilidade
 

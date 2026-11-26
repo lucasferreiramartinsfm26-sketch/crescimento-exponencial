@@ -6,63 +6,65 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Método não permitido." }), {
-      status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Método não permitido." }, 405);
   }
 
   try {
     const authorization = req.headers.get("Authorization") ?? "";
-    const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+    const token = authorization.startsWith("Bearer ")
+      ? authorization.slice(7).trim()
+      : "";
+
     if (!token) {
-      return new Response(JSON.stringify({ error: "Sessão não encontrada. Entre novamente." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Sessão não encontrada. Entre novamente." }, 401);
     }
 
     const body = await req.json().catch(() => ({}));
     if (body?.confirm !== "DELETE_MY_ACCOUNT") {
-      return new Response(JSON.stringify({ error: "Confirmação obrigatória não informada." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Confirmação obrigatória não informada." }, 400);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      throw new Error("Configuração segura do servidor incompleta.");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("delete-account: configuração segura do servidor incompleta.");
+      return jsonResponse({ error: "Serviço temporariamente indisponível. Entre em contato com o suporte." }, 500);
     }
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
+    // A chave administrativa fica somente no servidor. O JWT recebido é
+    // validado pelo Auth antes de qualquer operação administrativa.
+    const authClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: userData, error: userError } = await userClient.auth.getUser(token);
+
+    const { data: userData, error: userError } = await authClient.auth.getUser(token);
     if (userError || !userData.user) {
-      return new Response(JSON.stringify({ error: "Sessão inválida ou expirada. Entre novamente." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Sessão inválida ou expirada. Entre novamente." }, 401);
     }
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(userData.user.id);
-    if (deleteError) throw deleteError;
+    const { error: deleteError } = await authClient.auth.admin.deleteUser(userData.user.id);
+    if (deleteError) {
+      console.error("delete-account: falha ao excluir usuário:", deleteError.message);
+      return jsonResponse({ error: "Não foi possível excluir a conta. Entre em contato com o suporte." }, 500);
+    }
 
-    return new Response(JSON.stringify({ success: true, message: "Conta excluída." }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ success: true, message: "Conta excluída." });
   } catch (error) {
-    console.error("delete-account:", error);
-    return new Response(JSON.stringify({ error: "Não foi possível excluir a conta. Entre em contato com o suporte." }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("delete-account: erro inesperado:", error);
+    return jsonResponse({ error: "Não foi possível excluir a conta. Entre em contato com o suporte." }, 500);
   }
 });

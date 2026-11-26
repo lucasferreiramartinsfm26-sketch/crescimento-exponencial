@@ -8,6 +8,7 @@ export default function CandidateProfile() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -51,6 +52,30 @@ export default function CandidateProfile() {
     setSaving(false);
   }
 
+  async function deleteAccount() {
+    const confirmed = window.confirm(
+      'Tem certeza de que deseja excluir permanentemente sua conta e os dados associados? Esta ação não pode ser desfeita.'
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setError('');
+    setMessage('');
+    const { error: deleteError } = await supabase.functions.invoke('delete-account', {
+      body: { confirm: 'DELETE_MY_ACCOUNT' }
+    });
+
+    if (deleteError) {
+      setError('Não foi possível excluir sua conta. ' + (deleteError.message || 'Tente novamente.'));
+      setDeleting(false);
+      return;
+    }
+
+    await supabase.auth.signOut();
+    setMessage('Sua conta foi excluída.');
+    setDeleting(false);
+  }
+
   if (loading) return <section className="panel profile-panel"><p className="empty">Carregando seu perfil...</p></section>;
 
   const recommendedFields = [
@@ -90,5 +115,16 @@ export default function CandidateProfile() {
       {error && <p className="admin-error" role="alert">{error}</p>}
       {message && <p className="admin-success" role="status">{message}</p>}
     </div>
+    <section className="panel profile-panel" style={{ marginTop: 18 }}>
+      <div className="panel-heading">
+        <div>
+          <h3>Excluir minha conta</h3>
+          <p>A exclusão é permanente e remove seu acesso ao aplicativo. Só prossiga se tiver certeza.</p>
+        </div>
+      </div>
+      <button type="button" className="logout-button" onClick={deleteAccount} disabled={deleting || saving}>
+        {deleting ? 'Excluindo conta...' : 'Excluir minha conta permanentemente'}
+      </button>
+    </section>
   </section>;
 }

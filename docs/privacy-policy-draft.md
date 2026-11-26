@@ -53,7 +53,7 @@ O projeto utiliza autenticação e políticas de Row Level Security (RLS) no ban
 
 **PREENCHER ANTES DE PUBLICAR:** definir por quanto tempo contas, candidaturas, mensagens, denúncias e registros administrativos são mantidos; como o usuário solicita correção ou exclusão; quais dados precisam ser preservados por obrigação legal, exercício regular de direitos ou prevenção a fraude; e em quanto tempo os pedidos serão tratados.
 
-Não prometa exclusão imediata ou automática até existir um procedimento operacional testado para isso.
+O aplicativo já oferece um fluxo autenticado para solicitar a exclusão da própria conta na seção “Meu perfil”, com confirmação por frase. A função remove o usuário do Supabase Auth; registros relacionados dependem das chaves estrangeiras e regras de exclusão em cascata instaladas no banco. Antes da publicação, confirme no banco remoto quais tabelas são efetivamente eliminadas e documente eventuais dados preservados por obrigação legal ou exercício regular de direitos.
 
 ## 7. Direitos dos titulares
 
